@@ -5,7 +5,7 @@
   const form = document.getElementById('contact-form');
   if (!form) return;
   const WORKER_URL = 'https://forms.monaidea.com';
-  const SITEKEY = ''; // site key of Monaidea's Turnstile widget (public); until it is set the form asks people to email
+  const SITEKEY = '0x4AAAAAAFxf8Y0qokk1C-_6'; // site key of Monaidea's Turnstile widget (public; owner, 2026-11-02)
   const EMAIL = 'support@monaidea.com';
   const box = form.querySelector('.ts');
   const status = form.querySelector('.form-status');
