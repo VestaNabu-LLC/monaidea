@@ -1,6 +1,10 @@
-// Contact form (2026-11-02). Sends the message to Monaidea's contact Worker on Cloudflare
-// (https://forms.monaidea.com, source in worker/), which checks Cloudflare Turnstile and emails it
-// to support@monaidea.com through Postmark. Turnstile loads only once someone starts using the form.
+// Contact form (2026-11-02). The same file runs on www.monaidea.com (repo monaidea),
+// ledgerstone.monaidea.com/support/ and flagstone.monaidea.com/support/ (their site repos): keep the
+// copies identical. It sends the message to Monaidea's contact Worker on Cloudflare
+// (https://forms.monaidea.com, source in the monaidea repo's worker/), which checks Cloudflare Turnstile
+// and emails it to support@monaidea.com through Postmark. Turnstile loads only once someone starts
+// using the form. Optional: data-product="Ledgerstone" on the form puts the product in the topic, and
+// ?topic=early-access in the page address picks the topic whose text is "Early access".
 (() => {
   const form = document.getElementById('contact-form');
   if (!form) return;
@@ -10,10 +14,19 @@
   const box = form.querySelector('.ts');
   const status = form.querySelector('.form-status');
   const button = form.querySelector('button[type="submit"]');
+  const topics = form.querySelector('select[name="topic"]');
+  const product = form.dataset.product || '';
   let widget = null, token = '', loading = null, broken = false, waiters = [];
 
   const say = (text, state) => { status.textContent = text; status.dataset.state = state || ''; };
   const settle = (value) => { const w = waiters; waiters = []; w.forEach((resolve) => resolve(value)); };
+  const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  const wanted = new URLSearchParams(window.location.search).get('topic');
+  if (topics && wanted) {
+    const match = [...topics.options].find((option) => slug(option.text) === wanted);
+    if (match) topics.value = match.value;
+  }
 
   function load() {
     if (loading) return loading;
@@ -67,13 +80,14 @@
       token = '';
       say('Sending…', 'pending');
       const data = new FormData(form);
+      const topic = String(data.get('topic') || '');
       const res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: data.get('name'),
           email: data.get('email'),
-          interest: data.get('topic'),
+          interest: product ? `${product} · ${topic}` : topic,
           message: data.get('message'),
           website: data.get('website'),
           turnstileToken: t,
