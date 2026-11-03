@@ -1,0 +1,14 @@
+# The Worker "monaidea-contact" in Monaidea's own Cloudflare account (owner, 2026-11-02).
+# The owner created it in the dashboard; this file records its settings and allows `npx wrangler deploy`
+# from worker/ when logged in to that account.
+# Secrets, set in the dashboard (Settings > Variables and Secrets) or with `wrangler secret put`, never here:
+#   TURNSTILE_SECRET       secret key of Monaidea's Turnstile widget
+#   POSTMARK_SERVER_TOKEN  Postmark server API token
+# Optional plain variables: FROM_EMAIL (default noreply@monaidea.com), TO_EMAIL (default support@monaidea.com).
+name = "monaidea-contact"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[[routes]]
+pattern = "forms.monaidea.com"
+custom_domain = true

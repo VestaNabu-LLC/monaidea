@@ -1,11 +1,11 @@
-// Contact form (2026-11-02). Sends the message to VestaNabu LLC's contact Worker on Cloudflare
-// (source: VestaNabu-LLC/webforvestanabullc, worker/), which checks Cloudflare Turnstile and emails it
+// Contact form (2026-11-02). Sends the message to Monaidea's contact Worker on Cloudflare
+// (https://forms.monaidea.com, source in worker/), which checks Cloudflare Turnstile and emails it
 // to support@monaidea.com through Postmark. Turnstile loads only once someone starts using the form.
 (() => {
   const form = document.getElementById('contact-form');
   if (!form) return;
-  const WORKER_URL = 'https://vestanabu-contact.sebastiancanevari.workers.dev';
-  const SITEKEY = '0x4AAAAAAFhKX2dabCBOkQ4g';
+  const WORKER_URL = 'https://forms.monaidea.com';
+  const SITEKEY = ''; // site key of Monaidea's Turnstile widget (public); until it is set the form asks people to email
   const EMAIL = 'support@monaidea.com';
   const box = form.querySelector('.ts');
   const status = form.querySelector('.form-status');
@@ -17,6 +17,7 @@
 
   function load() {
     if (loading) return loading;
+    if (!SITEKEY) { broken = true; settle(''); return (loading = Promise.resolve()); }
     loading = new Promise((resolve, reject) => {
       window.monaideaTurnstileReady = resolve;
       const s = document.createElement('script');
@@ -84,7 +85,8 @@
         form.reset();
         say('Thanks! Your message is on its way. We answer within two business days.', 'success');
       } else {
-        say(result.error || `Something went wrong. Please try again, or email ${EMAIL}.`, 'error');
+        const code = result.code ? ` (${result.code})` : '';
+        say((result.error || `Something went wrong. Please try again, or email ${EMAIL}.`) + code, 'error');
       }
     } catch {
       say(`We could not reach our server. Please email ${EMAIL} instead.`, 'error');
