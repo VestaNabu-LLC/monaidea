@@ -1,0 +1,10 @@
+Brand | Monaidea | https://www.monaidea.com/
+Menu | Ledgerstone | https://ledgerstone.monaidea.com/
+Menu | Flagstone | https://flagstone.monaidea.com/
+Menu | Shops | https://shops.monaidea.com/
+Menu | Contact | https://www.monaidea.com/#contact
+Terms | https://www.monaidea.com/terms/
+Privacy | https://www.monaidea.com/privacy/
+Refunds | https://www.monaidea.com/refunds/
+Note | © 2026 VestaNabu LLC
+Shop | Admin Kits | https://adminkits.monaidea.com/ | Workbooks and checklists for Jira and Confluence admins.
