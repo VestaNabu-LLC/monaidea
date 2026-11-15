@@ -1,7 +1,38 @@
-# www.monaidea.com
+# www.monaidea.com and the Monaidea brand
 
-Basic landing page for Monaidea, the public name of VestaNabu LLC's software products (owner, 2026-10-21). Served by GitHub Pages from `main` (custom domain in `CNAME`). The product sites are https://ledgerstone.monaidea.com (repo VestaNabu-LLC/ledgerstone-site, named atlapps until 2026-10-25) and https://flagstone.monaidea.com (repo VestaNabu-LLC/flagstone-site, in development). `style.css` and `site.js` are copies of the Flagstone site's files (Ledgerstone's, plus a few additions at the end).
+Monaidea is the public name of VestaNabu LLC's software products (owner,
+2026-10-21). This repository holds its landing page and, in `brand/`, the one
+source of the look, header and footer of every Monaidea page. Rules for anyone
+changing it: `CLAUDE.md`.
 
-What Monaidea is will be defined later with the owner; until then the page only names the company, links both apps and gives the support address. VestaNabu LLC appears only in the copyright line.
+## How a page gets published
 
-Contact form (owner request, 2026-11-02; working since the owner's test the same day, 22:15 CT): the `#contact` section of the home page and `contact.js`; every page's "Contact" link goes there, and support@monaidea.com stays visible as plain text. The form posts to Monaidea's own contact Worker, `monaidea-contact` in Monaidea's Cloudflare account at https://forms.monaidea.com (source, tests and settings in `worker/`; the owner creates and deploys it in the dashboard, and `GET https://forms.monaidea.com/` shows whether its two secrets are set). It checks Cloudflare Turnstile (Monaidea's widget, in the same account; its public site key is `SITEKEY` in contact.js; when contact.js changes, bump `?v=` on its script tag in index.html) and emails the message from noreply@monaidea.com to support@monaidea.com through Postmark. Turnstile loads only once someone starts using the form. Tests: `node --test worker/test/*.test.mjs`. The Ledgerstone and Flagstone support pages use the same form and Worker; `contact.js` is shared with those site repos, so keep the three copies identical.
+A page under `pages/` holds content only. On every push to `main` the `publish`
+workflow runs the tests, then `brand/stamp.mjs` builds the site (it adds the
+stylesheet, fonts, header, footer, scripts, address and icon to every page, and
+refuses to build if one page cannot be stamped), and GitHub Pages serves the
+result. `atlapps-site` is built the same way with this repository's `brand/`.
+
+```sh
+node --test brand/stamp.test.mjs worker/test/index.test.mjs
+node brand/stamp.mjs . _site
+```
+
+The build also publishes `/platform/style.css` and `/platform/frame.txt`: the
+same brand for the pages the platform publishes (shops.monaidea.com and each
+category's host). The owner pastes them into the platform's dashboard.
+
+## Contact form
+
+The `#contact` section of the home page and `brand/contact.js` (owner request,
+2026-11-02; working since his test the same day). The form posts to Monaidea's
+own contact Worker, `monaidea-contact` in Monaidea's Cloudflare account at
+https://forms.monaidea.com (source, tests and settings in `worker/`; the owner
+creates and deploys it in the dashboard, and `GET https://forms.monaidea.com/`
+shows whether its two secrets are set). It checks Cloudflare Turnstile
+(Monaidea's widget, in the same account, allowed on `monaidea.com` and so on
+every host under it; its public site key is `SITEKEY` in `brand/contact.js`)
+and emails the message from noreply@monaidea.com to support@monaidea.com
+through Postmark. Turnstile loads only once someone starts using the form. The
+Worker accepts any `https://*.monaidea.com` page, so every Monaidea site uses
+the same form.

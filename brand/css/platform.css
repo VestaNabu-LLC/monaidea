@@ -1,0 +1,60 @@
+/* The pages the platform publishes (product pages, category pages, the shops
+   index): plain HTML with no classes but the platform's own, .cards, .buy and
+   .note. */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;min-height:100%;background:var(--bg) no-repeat fixed radial-gradient(1200px 600px at 50% -10%,#121a3a 0%,transparent 60%)}
+body{margin:0;min-height:100vh;color:var(--fg);font:16px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body>*:not(header):not(footer){max-width:920px;margin-left:auto;margin-right:auto;padding-left:20px;padding-right:20px}
+body>.note{max-width:880px;padding-left:22px;padding-right:22px}
+body>ul,body>ol{padding-left:42px}
+body>main,body>header+*{padding-top:56px}
+body>:last-child:not(footer),main{padding-bottom:40px}
+
+/* type */
+h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.03em;line-height:1.1;margin:0 0 14px;color:var(--fg)}
+h1{font-size:clamp(36px,6vw,60px);font-weight:700;letter-spacing:-.04em;line-height:1.04;margin-bottom:18px}
+h2{font-size:clamp(24px,3.4vw,32px);font-weight:700;margin-top:56px}
+h3{font-size:20px;font-weight:600;letter-spacing:-.02em;margin-top:36px}
+h1+p{font-size:18px;color:var(--muted)}
+p,li,dd,td,th{color:var(--muted)}
+p{margin:0 0 16px}
+strong,b{color:var(--fg);font-weight:600}
+a{color:var(--a1);text-decoration:none}
+a:hover{color:var(--fg)}
+ul,ol{padding-left:22px;margin:0 0 20px}
+li{margin:6px 0}
+li::marker{color:var(--a2)}
+dt{color:var(--fg);font-weight:600;margin-top:16px}
+dd{margin:4px 0 0}
+small{color:var(--dim);font-size:13px}
+hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+code,kbd{font:500 .9em var(--mono);background:var(--card-hi);border:1px solid var(--line);border-radius:6px;padding:.1em .4em}
+pre{overflow-x:auto;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px}
+pre code{background:none;border:0;padding:0}
+blockquote{margin:24px 0;padding:4px 0 4px 20px;border-left:2px solid var(--a2)}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{color:var(--fg);font-weight:600}
+img,svg,video{max-width:100%;height:auto}
+
+/* the builder's link back to its category, first on the page */
+body>a:first-child,body>header+a,main>a:first-child{display:block;margin-bottom:28px;color:var(--dim);font-size:14px}
+body>a:first-child::before,body>header+a::before,main>a:first-child::before{content:"\2190 \00a0"}
+
+/* the buy link, and a note */
+.buy,a.buy{display:inline-flex;align-items:center;gap:8px;margin:8px 0 24px;padding:12px 22px;border-radius:12px;background:var(--grad);color:#fff;font:600 15px var(--body);box-shadow:0 8px 30px -8px rgba(99,102,241,.7);transition:transform .2s,box-shadow .2s}
+.buy:hover,a.buy:hover{color:#fff;transform:translateY(-2px);box-shadow:0 14px 40px -8px rgba(99,102,241,.85)}
+.note{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:18px 22px;margin-top:24px;margin-bottom:24px}
+
+/* cards: category and shops pages */
+.cards{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));list-style:none;padding:0;margin:24px 0 8px}
+.cards li{margin:0}
+.cards a{display:block;height:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:24px 26px;color:var(--fg);font:600 19px/1.25 var(--display);letter-spacing:-.02em;transition:border-color .25s,transform .25s}
+.cards a:hover{border-color:var(--line-hi);transform:translateY(-3px)}
+.cards p{margin:8px 0 0;font:400 15px/1.6 var(--body);letter-spacing:0;color:var(--muted)}
+.cards small{display:block;margin-top:6px;font:500 12px var(--body);letter-spacing:0}
+h2>a{color:var(--fg)}
+h2>a:hover{color:var(--a1)}
+
+@media (max-width:640px){body>.note{margin-left:20px;margin-right:20px}h2{margin-top:40px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

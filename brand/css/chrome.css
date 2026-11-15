@@ -1,0 +1,15 @@
+/* The header and the footer. Their markup is the same on every page of every
+   site: the stamper writes it for the hand-built pages and the platform writes
+   it for its own, both from brand/frame.txt. */
+header[data-of]{position:sticky;top:0;z-index:10;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);background:rgba(7,10,18,.6);border-bottom:1px solid var(--line)}
+header[data-of] nav{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:14px 20px}
+header[data-of] a{text-decoration:none;color:var(--muted);font-size:14px;font-weight:500;border:0;transition:color .2s}
+header[data-of] a:hover,header[data-of] a[aria-current]{color:var(--fg)}
+header[data-of] .brand{display:flex;align-items:center;gap:10px;margin-right:auto;color:var(--fg);font:700 18px/1 var(--display);letter-spacing:-.02em}
+header[data-of] .brand::before{content:"";width:28px;height:28px;border-radius:8px;box-shadow:0 0 24px rgba(99,102,241,.45);
+background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 3 8l9 5 9-5-9-5Z'/%3E%3Cpath d='m3 13 9 5 9-5'/%3E%3C/svg%3E") center/16px no-repeat,var(--grad)}
+footer[data-of]{max-width:1120px;margin:64px auto 0;padding:28px 20px 40px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+footer[data-of] a{color:var(--dim);text-decoration:none}
+footer[data-of] a:hover{color:var(--fg)}
+footer[data-of] p{margin:12px 0 0;color:var(--dim)}
+@media (max-width:640px){header[data-of]{position:static}header[data-of] nav{gap:8px 16px}header[data-of] .brand{width:100%}}
