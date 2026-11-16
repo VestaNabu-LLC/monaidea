@@ -128,11 +128,25 @@ const css = (...names) => names.map((name) => brandText(`css/${name}.css`).trim(
 export const siteStyle = () => css('font', 'tokens', 'chrome', 'site');
 
 // What the owner pastes into the platform (Products > How the sites look). The
-// platform puts it inside each page, so the fonts are asked for by full address.
-export function platformStyle(frame) {
-  const home = new URL(frame.brand.url).origin;
-  const text = css('font', 'tokens', 'chrome', 'platform').replaceAll('url(/fonts/', `url(${home}/fonts/`).trim();
-  if (Buffer.byteLength(text) > 65536) refuse('the platform stylesheet is longer than the 65536 bytes the platform takes');
+// platform writes it into each page, and its database refuses a stylesheet
+// that loads anything from another host (standalone-harnessed, migration
+// 0043: a page gives nothing away about who reads it). So the display
+// typeface travels inside the stylesheet, and the text and code typefaces,
+// which would not fit in the 64 KB the platform takes, fall back to the
+// reader's own.
+const PLATFORM_FONTS = ['space-grotesk.woff2'];
+const PLATFORM_REFUSES = /<\/|<script|javascript:|expression\(|@import|url\s*\(\s*["']?\s*(https?:)?\/\//i;
+export function platformStyle() {
+  const faces = brandText('css/font.css').match(/@font-face\{[^}]*\}/g) ?? [];
+  const inside = PLATFORM_FONTS.map((file) => {
+    const face = faces.find((rule) => rule.includes(`url(/fonts/${file})`));
+    if (!face) refuse(`brand/css/font.css: no @font-face for /fonts/${file}`);
+    return face.replace(`url(/fonts/${file})`, `url(data:font/woff2;base64,${readFileSync(join(BRAND, 'fonts', file)).toString('base64')})`);
+  });
+  const text = [...inside, css('tokens', 'chrome', 'platform')].join('\n').trim();
+  if (Buffer.byteLength(text) > 65536 || PLATFORM_REFUSES.test(text)) {
+    refuse('the platform stylesheet is not one the platform takes: at most 65536 bytes, nothing that runs, nothing loaded from another host');
+  }
   return text;
 }
 
@@ -307,7 +321,7 @@ export function buildSite(siteDir) {
   for (const [name, text] of Object.entries(assets)) out.set(name, text);
   for (const file of walk(join(BRAND, 'fonts'))) out.set(`fonts/${file}`, readFileSync(join(BRAND, 'fonts', file)));
   if (site.platform) {
-    out.set('platform/style.css', platformStyle(frame) + '\n');
+    out.set('platform/style.css', platformStyle() + '\n');
     out.set('platform/frame.txt', brandText('frame.txt'));
   }
   const v = Object.fromEntries(Object.entries(assets).map(([name, text]) => [name, `/${name}?v=${hash(text)}`]));

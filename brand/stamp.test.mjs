@@ -243,28 +243,31 @@ test('a site: nothing is built when one thing is wrong, and every reason is give
 });
 
 test('the stylesheets: one source, two outputs', () => {
-  const frame = readFrame(frameText);
   const forSites = siteStyle();
-  const forPlatform = platformStyle(frame);
-  const home = new URL(frame.brand.url).origin;
-  assert.ok(forSites.includes('url(/fonts/inter.woff2)') && !forSites.includes(`${home}/fonts/`));
-  assert.ok(forPlatform.includes(`url(${home}/fonts/inter.woff2)`) && !forPlatform.includes('url(/fonts/'));
-  assert.ok(Buffer.byteLength(forPlatform) <= 65536 && forPlatform === forPlatform.trim(), 'what the platform takes');
+  const forPlatform = platformStyle();
+  assert.ok(forSites.includes('url(/fonts/inter.woff2)') && forSites.includes('url(/fonts/space-grotesk.woff2)') && forSites.includes('url(/fonts/jetbrains-mono.woff2)'));
   for (const shared of ['--a2:#6366f1', 'header[data-of]{position:sticky', 'footer[data-of]{max-width', '@font-face{font-family:"Space Grotesk"']) {
     assert.ok(forSites.includes(shared) && forPlatform.includes(shared), `both have ${shared}`);
   }
   assert.ok(forSites.includes('.subnav{') && !forPlatform.includes('.subnav'));
   assert.ok(forPlatform.includes('.cards{') && !forSites.includes('.cards{'));
-  for (const text of [forSites, forPlatform]) {
-    assert.ok(!/@import|googleapis|gstatic/.test(text), 'no page asks another company for anything');
-  }
+  assert.ok(!/@import|googleapis|gstatic/.test(forSites), 'no page asks another company for a font');
+
+  // What the platform takes (standalone-harnessed, migration 0043, word for
+  // word): at most 64 KB, trimmed, nothing that runs, nothing from another host.
+  const refusedByThePlatform = /<\/|<script|javascript:|expression\(|@import|url\s*\(\s*["']?\s*(https?:)?\/\//i;
+  assert.ok(!refusedByThePlatform.test(forPlatform), 'nothing loaded from another host');
+  assert.ok(Buffer.byteLength(forPlatform) <= 65536 && forPlatform === forPlatform.trim());
+  assert.ok(!forPlatform.includes('url(/fonts/'), 'a page of the platform has no /fonts/ to ask');
+  const embedded = readFileSync(join(BRAND, 'fonts/space-grotesk.woff2')).toString('base64');
+  assert.ok(forPlatform.includes(`font-weight:300 700;font-display:swap;src:url(data:font/woff2;base64,${embedded}) format("woff2")}`), 'the display typeface travels inside');
+  assert.equal(forPlatform.split('@font-face').length, 2, 'and only that one');
 });
 
 test('this repository\'s own site is stamped, with the platform\'s files', () => {
   const out = buildSite(join(BRAND, '..'));
-  const frame = readFrame(frameText);
   assert.ok(out.get('index.html').includes('<header data-of="the brand">'));
-  assert.equal(out.get('platform/style.css'), platformStyle(frame) + '\n');
+  assert.equal(out.get('platform/style.css'), platformStyle() + '\n');
   assert.equal(out.get('platform/frame.txt'), frameText);
   assert.deepEqual(difference(join(BRAND, '..')), { write: [], remove: [] }, 'run `node brand/stamp.mjs .` and commit what it writes');
 });
