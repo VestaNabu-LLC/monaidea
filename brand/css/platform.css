@@ -48,15 +48,17 @@ th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
 th{color:var(--fg);font-weight:600}
 img,svg,video{max-width:100%;height:auto}
 
-/* where a page sits: the platform's own trail above the title (Shops ›
-   category › product), in the hand-built pages' .crumbs look. A way back the
-   builder wrote just before it is not shown twice; the trail then stands
+/* where a page sits: the platform's own trail (Shops › category › product),
+   in the hand-built pages' .crumbs look. It stands above the title, or first
+   on a page whose title the platform can't find. A way back the builder wrote
+   right before or right after it is not shown twice; the trail then stands
    first under the header, and takes that place's room. */
 nav[data-of]{margin-bottom:20px;color:var(--dim);font-size:14px}
 nav[data-of] a{color:var(--muted)}
 nav[data-of] a:hover{color:var(--fg)}
-:is(a,p:has(>a:first-child),nav:not([data-of])):has(+nav[data-of]){display:none}
+:is(a,p:has(>a:first-child),nav:not([data-of])):has(+nav[data-of]),nav[data-of]+:is(a,p:has(>a:first-child),nav),nav[data-of]+main>:is(a,p:has(>a:first-child),nav):first-child{display:none}
 body>header+:is(a,p:has(>a:first-child),nav:not([data-of]))+nav[data-of]{padding-top:56px}
+nav[data-of]+main{padding-top:0}
 
 /* the buy link, and a note */
 .buy,a.buy{display:inline-flex;align-items:center;gap:8px;margin:8px 0 24px;padding:12px 22px;border-radius:12px;background:var(--grad);color:#fff;font:600 15px var(--body);box-shadow:0 8px 30px -8px rgba(99,102,241,.7);transition:transform .2s,box-shadow .2s}
