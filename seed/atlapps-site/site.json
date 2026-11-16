@@ -1,0 +1,16 @@
+{
+  "base": "https://atlapps.monaidea.com",
+  "notes": ["Independent apps for Atlassian Cloud. Not affiliated with Atlassian."],
+  "sections": {
+    "ledgerstone": {
+      "name": "Ledgerstone",
+      "mark": ["M16 3 5 7v8c0 7 4.7 11.7 11 14 6.3-2.3 11-7 11-14V7L16 3Z", "M10 13h12M10 17.5h12M12.5 22h7"],
+      "pages": [["Overview", "/ledgerstone/"], ["Guide", "/ledgerstone/guide/"], ["Support", "/ledgerstone/support/"], ["Privacy", "/ledgerstone/privacy/"], ["Security", "/ledgerstone/security/"]]
+    },
+    "flagstone": {
+      "name": "Flagstone",
+      "mark": ["M9 28V5", "M9 6c2.6-1.6 5.4-1.6 8 0s5.4 1.6 8 0v11c-2.6 1.6-5.4 1.6-8 0s-5.4-1.6-8 0"],
+      "pages": [["Overview", "/flagstone/"], ["Guide", "/flagstone/guide/"], ["Support", "/flagstone/support/"], ["Privacy", "/flagstone/privacy/"], ["Security", "/flagstone/security/"]]
+    }
+  }
+}
