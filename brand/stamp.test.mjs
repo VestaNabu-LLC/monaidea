@@ -256,6 +256,7 @@ test('the stylesheets: one source, two outputs', () => {
   }
   assert.ok(forSites.includes('.subnav{') && !forPlatform.includes('.subnav'));
   assert.ok(forPlatform.includes('.cards{') && !forSites.includes('.cards{'));
+  assert.ok(forPlatform.includes('nav[data-of]{') && !forSites.includes('nav[data-of]'), "the platform's own trail has its look, on its pages only");
   assert.ok(!/@import|googleapis|gstatic/.test(forSites), 'no page asks another company for a font');
 
   // What the platform takes (standalone-harnessed, migration 0043, word for
