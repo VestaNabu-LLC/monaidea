@@ -7,18 +7,21 @@ changing it: `CLAUDE.md`.
 
 ## How a page gets published
 
-A page under `pages/` holds content only. On every push to `main` the `publish`
-workflow runs the tests, then `brand/stamp.mjs` builds the site (it adds the
-stylesheet, fonts, header, footer, scripts, address and icon to every page, and
-refuses to build if one page cannot be stamped), and GitHub Pages serves the
-result. `atlapps-site` is built the same way with this repository's `brand/`.
+A page under `pages/` holds content only. `brand/stamp.mjs` writes the finished
+page from it into the repository's root: it adds the stylesheet, fonts, header,
+footer, scripts, address and icon to every page, and writes nothing if one page
+breaks a rule. The finished pages are committed, and GitHub Pages serves `main`
+as it is. A check on every push fails when the committed files are not what
+the stamper writes. `atlapps-site` is written the same way with this
+repository's `brand/`.
 
 ```sh
 node --test brand/stamp.test.mjs worker/test/index.test.mjs
-node brand/stamp.mjs . _site
+node brand/stamp.mjs .            # then commit what it wrote
+node brand/stamp.mjs . --check
 ```
 
-The build also publishes `/platform/style.css` and `/platform/frame.txt`: the
+The stamper also writes `/platform/style.css` and `/platform/frame.txt`: the
 same brand for the pages the platform publishes (shops.monaidea.com and each
 category's host). The owner pastes them into the platform's dashboard.
 

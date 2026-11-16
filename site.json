@@ -1,5 +1,6 @@
 {
   "base": "https://www.monaidea.com",
   "notes": ["Not affiliated with Atlassian."],
+  "private": ["worker"],
   "platform": true
 }

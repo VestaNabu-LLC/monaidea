@@ -1,10 +1,24 @@
 #!/usr/bin/env node
-// The stamper: builds a site from pages that hold content only.
+// The stamper: writes a site's finished pages from pages that hold content only.
 //
-//   node brand/stamp.mjs <site folder> <output folder>
+//   node brand/stamp.mjs <site folder>            writes the site
+//   node brand/stamp.mjs <site folder> --check    writes nothing; fails when the
+//                                                 files there are not what it would write
 //
-// The site folder holds site.json and pages/. Every .html file under pages/ is
-// one page, written like this and no other way:
+// GitHub Pages serves a site's repository as it is, so the finished pages are
+// committed: run the stamper before every commit that touches pages/, site.json
+// or the brand, and commit what it wrote. The check runs on every push.
+//
+// A site's folder:
+//
+//   site.json        its address and settings (below)
+//   pages/           one .html file per page, content only (below); nothing else
+//   everything else  published as it is, at its own path: pictures, videos, PDFs,
+//                    CNAME. The stamper writes the finished pages here too, each
+//                    at its page's path, with style.css, site.js, contact.js,
+//                    fonts/, sitemap.xml, robots.txt and _config.yml.
+//
+// A page under pages/ is written like this and no other way:
 //
 //   <title>What the page is</title>
 //   <meta name="description" content="One or two sentences.">
@@ -22,17 +36,19 @@
 // the stylesheet does not know. Links are "#…", "/…" (checked: the page or
 // file, and the id after a #, must exist), "https://…" or "mailto:…".
 //
-// When one page breaks a rule nothing is built, and every reason is printed.
-// Other files under pages/ (pictures, videos, PDFs) are copied as they are.
+// When one page breaks a rule nothing is written, and every reason is printed.
+// A finished page whose source is gone is removed.
 //
 // site.json: "base" (the site's address), "notes" (up to 2 more footer lines),
 // "sections" (a product's own pages get a bar under the header: its name, its
-// mark as SVG path data in a 32 by 32 box, and its pages), and "platform":
-// true on the brand's own site, which also publishes the platform's files.
+// mark as SVG path data in a 32 by 32 box, and its pages), "private" (other
+// top-level names GitHub Pages must not publish; pages/, brand/, site.json,
+// README.md and CLAUDE.md never are), and "platform": true on the brand's own
+// site, which also publishes the platform's files.
 //
 // Nothing in this file is about one site.
 
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -217,7 +233,11 @@ const walk = (dir, under = '') => readdirSync(join(dir, under), { withFileTypes:
 const hash = (text) => createHash('sha256').update(text).digest('hex').slice(0, 8);
 // The address of a page: its folder for index.html, else the file.
 const pathOf = (file) => '/' + file.replace(/(^|\/)index\.html$/, '$1');
-const RESERVED = /^(style\.css|site\.js|contact\.js|sitemap\.xml|robots\.txt|fonts\/|platform\/)/;
+const isFile = (path) => existsSync(path) && statSync(path).isFile();
+// Names the stamper writes itself, and names GitHub Pages never publishes.
+const RESERVED = /^(style\.css|site\.js|contact\.js|sitemap\.xml|robots\.txt|_config\.yml|fonts\/|platform\/)/;
+const PRIVATE = ['pages', 'brand', 'site.json', 'README.md', 'CLAUDE.md'];
+const hidden = (name) => name.startsWith('.') || name.startsWith('_') || name === 'node_modules';
 
 function readSite(siteDir) {
   let site;
@@ -227,6 +247,11 @@ function readSite(siteDir) {
   if (!Array.isArray(site.notes) || site.notes.length > 2 || !site.notes.every((n) => typeof n === 'string' && words(n, 200))) {
     refuse('site.json: "notes" is at most 2 lines of 1 to 200 characters');
   }
+  site.private ??= [];
+  if (!Array.isArray(site.private) || !site.private.every((name) => typeof name === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name))) {
+    refuse('site.json: "private" is a list of top-level file or folder names');
+  }
+  site.private = [...PRIVATE, ...site.private];
   site.sections ??= {};
   for (const [key, s] of Object.entries(site.sections)) {
     const bad = (why) => refuse(`site.json: section "${key}": ${why}`);
@@ -251,47 +276,60 @@ function subBar(section, path) {
   return `<nav class="subnav" aria-label="${esc(section.name)}"><div class="subnav-in"><a class="subnav-name" href="${esc(home)}"><span class="mark"><svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${markPaths(section)}</svg></span>${esc(section.name)}</a>${section.pages.map(item).join('')}</div></nav>\n`;
 }
 
-// Builds the whole site in memory: a Map of output path to text, or to
-// { copy: source path } for a file that is copied. Refuses with every reason
-// at once, so one run tells a page's writer all there is to fix.
+// Everything the stamper writes for a site: a Map of path to text or bytes.
+// Refuses with every reason at once, so one run tells a page's writer all
+// there is to fix.
 export function buildSite(siteDir) {
   const site = readSite(siteDir);
   const frame = readFrame(brandText('frame.txt'));
   const classes = knownClasses();
   const pagesDir = join(siteDir, 'pages');
   if (!existsSync(pagesDir)) refuse(`${siteDir}: no pages/ folder`);
+  const isPrivate = (path) => { const top = path.split('/')[0]; return hidden(top) || site.private.includes(top); };
 
-  const out = new Map();
   const reasons = [];
   const pages = [];
   for (const file of walk(pagesDir).sort()) {
-    if (RESERVED.test(file)) { reasons.push(`${file}: this name is the stamper's`); continue; }
-    if (!file.endsWith('.html')) { out.set(file, { copy: join(pagesDir, file) }); continue; }
-    try {
-      pages.push(readPage(readFileSync(join(pagesDir, file), 'utf8'), file, classes));
-    } catch (e) {
-      if (!(e instanceof Refused)) throw e;
-      reasons.push(e.message);
+    if (!file.endsWith('.html')) reasons.push(`pages/${file}: pages/ holds pages only; a picture or another file goes at the path it is published at`);
+    else if (RESERVED.test(file) || isPrivate(file)) reasons.push(`pages/${file}: this name is the stamper's, or one that is not published`);
+    else {
+      try {
+        pages.push(readPage(readFileSync(join(pagesDir, file), 'utf8'), file, classes));
+      } catch (e) {
+        if (!(e instanceof Refused)) throw e;
+        reasons.push(`pages/${e.message}`);
+      }
     }
   }
 
+  const out = new Map();
   const assets = { 'style.css': siteStyle(), 'site.js': brandText('site.js'), 'contact.js': brandText('contact.js') };
+  for (const [name, text] of Object.entries(assets)) out.set(name, text);
+  for (const file of walk(join(BRAND, 'fonts'))) out.set(`fonts/${file}`, readFileSync(join(BRAND, 'fonts', file)));
+  if (site.platform) {
+    out.set('platform/style.css', platformStyle(frame) + '\n');
+    out.set('platform/frame.txt', brandText('frame.txt'));
+  }
   const v = Object.fromEntries(Object.entries(assets).map(([name, text]) => [name, `/${name}?v=${hash(text)}`]));
   const byPath = new Map(pages.map((page) => [pathOf(page.file), page]));
   const sectionOf = (path) => Object.entries(site.sections).find(([key]) => path.startsWith(`/${key}/`))?.[1];
 
-  // Every link inside the site leads somewhere, to the letter.
+  // Every link inside the site leads somewhere, to the letter: a page, a file
+  // the stamper writes, or a file that is published as it is.
+  const published = (path) => out.has(path) || (!isPrivate(path) && !path.endsWith('.html') && isFile(join(siteDir, path)));
+  const plain = (path) => { try { return decodeURIComponent(path); } catch { return '\0'; } };
   const leads = (url, from) => {
-    const [path, fragment] = url.split('#');
-    const to = path === '' ? from : byPath.get(path.split('?')[0]);
-    if (path !== '' && !to && !out.has(path.split('?')[0].slice(1))) return `${url} leads nowhere on this site`;
+    const [address, fragment] = url.split('#');
+    const path = address.split('?')[0];
+    const to = address === '' ? from : byPath.get(path);
+    if (address !== '' && !to && !published(plain(path.slice(1)))) return `${url} leads nowhere on this site`;
     if (fragment && to && !to.ids.has(fragment)) return `${url}: no id="${fragment}" on that page`;
     return '';
   };
   for (const page of pages) {
     for (const url of page.links.filter((u) => u.startsWith('#') || u.startsWith('/'))) {
       const why = leads(url, page);
-      if (why) reasons.push(`${page.file}: ${why}`);
+      if (why) reasons.push(`pages/${page.file}: ${why}`);
     }
   }
   for (const [key, section] of Object.entries(site.sections)) {
@@ -327,41 +365,64 @@ export function buildSite(siteDir) {
     ].filter(Boolean).join('\n') + '\n');
   }
 
-  for (const [name, text] of Object.entries(assets)) out.set(name, text);
-  for (const file of walk(join(BRAND, 'fonts'))) out.set(`fonts/${file}`, { copy: join(BRAND, 'fonts', file) });
   const listed = pages.filter((page) => page.file !== '404.html' && !/noindex/.test(page.robots)).map((page) => site.base + pathOf(page.file));
   out.set('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${listed.map((u) => `  <url><loc>${esc(u)}</loc></url>`).join('\n')}\n</urlset>\n`);
   out.set('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${site.base}/sitemap.xml\n`);
-  if (site.platform) {
-    out.set('platform/style.css', platformStyle(frame) + '\n');
-    out.set('platform/frame.txt', brandText('frame.txt'));
-  }
+  out.set('_config.yml', `# Written by the stamper (brand/stamp.mjs in the monaidea repository).\n# GitHub Pages serves this repository as it is, except these: the sources.\nexclude: [${site.private.join(', ')}]\n`);
   return out;
 }
 
-export function writeSite(siteDir, outDir) {
+// What separates the site's folder from what the stamper would write: the
+// files to write (missing or different) and the finished pages to remove
+// (their source is gone; every published .html comes from pages/).
+export function difference(siteDir, out = buildSite(siteDir)) {
+  const unpublished = readSite(siteDir).private;
+  const same = (path, what) => isFile(join(siteDir, path)) && Buffer.from(what).equals(readFileSync(join(siteDir, path)));
+  const write = [...out.keys()].filter((path) => !same(path, out.get(path)));
+  const scan = (under = '') => readdirSync(join(siteDir, under), { withFileTypes: true }).flatMap((entry) => {
+    const path = under ? `${under}/${entry.name}` : entry.name;
+    if (hidden(entry.name) || (!under && unpublished.includes(entry.name))) return [];
+    return entry.isDirectory() ? scan(path) : [path];
+  });
+  const remove = scan().filter((path) => path.endsWith('.html') && !out.has(path));
+  return { write, remove };
+}
+
+export function writeSite(siteDir) {
   const out = buildSite(siteDir);
-  rmSync(outDir, { recursive: true, force: true });
-  for (const [path, what] of out) {
-    mkdirSync(dirname(join(outDir, path)), { recursive: true });
-    if (typeof what === 'string') writeFileSync(join(outDir, path), what);
-    else cpSync(what.copy, join(outDir, path));
+  const { write, remove } = difference(siteDir, out);
+  for (const path of write) {
+    mkdirSync(dirname(join(siteDir, path)), { recursive: true });
+    writeFileSync(join(siteDir, path), out.get(path));
   }
-  return out;
+  for (const path of remove) rmSync(join(siteDir, path));
+  return { out, write, remove };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const [siteDir, outDir] = process.argv.slice(2);
-  if (!siteDir || !outDir) {
-    console.error('usage: node brand/stamp.mjs <site folder> <output folder>');
+  const [siteDir, flag] = process.argv.slice(2);
+  if (!siteDir || (flag && flag !== '--check')) {
+    console.error('usage: node brand/stamp.mjs <site folder> [--check]');
     process.exit(2);
   }
   try {
-    const out = writeSite(siteDir, outDir);
-    console.log(`stamped ${[...out.keys()].filter((p) => p.endsWith('.html')).length} pages, ${out.size} files in ${outDir}`);
+    if (flag === '--check') {
+      const { write, remove } = difference(siteDir);
+      if (write.length || remove.length) {
+        console.error('The files here are not what the stamper writes. Run it without --check and commit the result.');
+        for (const path of write) console.error(`  to write:  ${path}`);
+        for (const path of remove) console.error(`  to remove: ${path} (no page under pages/ makes it)`);
+        process.exit(1);
+      }
+      console.log('The site is what the stamper writes.');
+    } else {
+      const { out, write, remove } = writeSite(siteDir);
+      const pages = [...out.keys()].filter((path) => path.endsWith('.html')).length;
+      console.log(`${pages} pages stamped: ${write.length} files written, ${remove.length} removed`);
+    }
   } catch (e) {
     if (!(e instanceof Refused)) throw e;
-    console.error(`Not published. The stamper refuses:\n${e.message}`);
+    console.error(`Nothing written. The stamper refuses:\n${e.message}`);
     process.exit(1);
   }
 }
