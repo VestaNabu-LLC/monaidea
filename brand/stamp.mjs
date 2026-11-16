@@ -26,8 +26,9 @@
 //     …the content, using the classes of brand/css/site.css…
 //   </main>
 //
-// Before <main> a page may also have <meta name="robots" …>, og:type, og:title
-// and og:description lines, and one block of structured data (ld+json). The
+// Before <main> a page may also have <meta name="robots" …>, og:type, og:title,
+// og:description and og:image ("/…", a picture of the site) lines, and one
+// block of structured data (ld+json). The
 // stamper adds everything else from this folder: the stylesheet, the fonts,
 // the header and footer (brand/frame.txt), the scripts, the page's address
 // and its icon. So every page of every Monaidea site looks and behaves the
@@ -187,7 +188,9 @@ export function readPage(source, file, classes = knownClasses()) {
     } else if ((m = take(/^<meta name="(description|robots)" content="([^"<>]+)">/))) {
       if (page[m[1]]) no(`two ${m[1]} lines`);
       page[m[1]] = m[2];
-    } else if ((m = take(/^<meta property="og:(type|title|description)" content="([^"<>]+)">/))) {
+    } else if ((m = take(/^<meta property="og:(type|title|description|image)" content="([^"<>]+)">/))) {
+      if (m[1] === 'image' && !/^\/(?!\/)/.test(m[2])) no('og:image is a picture of this site, written from the root: "/…"');
+      if (m[1] === 'image') page.links.push(m[2]);
       page.og[m[1]] = m[2];
     } else if ((m = take(/^<script type="application\/ld\+json">([\s\S]*?)<\/script>/))) {
       try { JSON.parse(m[1]); } catch { no('the structured data is not valid JSON'); }
@@ -365,7 +368,7 @@ export function buildSite(siteDir) {
       `<title>${page.title}</title><meta name="description" content="${page.description}"><meta name="theme-color" content="#070a12">`,
       missing || page.robots ? `<meta name="robots" content="${page.robots || 'noindex'}">` : '',
       missing ? '' : `<link rel="canonical" href="${address}">`,
-      missing ? '' : `<meta property="og:site_name" content="${esc(frame.brand.name)}"><meta property="og:type" content="${og.type}"><meta property="og:title" content="${og.title}"><meta property="og:description" content="${og.description}"><meta property="og:url" content="${address}">`,
+      missing ? '' : `<meta property="og:site_name" content="${esc(frame.brand.name)}"><meta property="og:type" content="${og.type}"><meta property="og:title" content="${og.title}"><meta property="og:description" content="${og.description}"><meta property="og:url" content="${address}">${og.image ? `<meta property="og:image" content="${site.base}${og.image}"><meta name="twitter:card" content="summary_large_image">` : ''}`,
       `<link rel="icon" href="${section ? sectionIcon(section) : BRAND_ICON}">`,
       `<link rel="stylesheet" href="${v['style.css']}">`,
       page.data ? `<script type="application/ld+json">${page.data}</script>` : '',
