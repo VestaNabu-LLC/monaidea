@@ -267,6 +267,7 @@ test('the stylesheets: one source, two outputs', () => {
   const embedded = readFileSync(join(BRAND, 'fonts/space-grotesk.woff2')).toString('base64');
   assert.ok(forPlatform.includes(`font-weight:300 700;font-display:swap;src:url(data:font/woff2;base64,${embedded}) format("woff2")}`), 'the display typeface travels inside');
   assert.equal(forPlatform.split('@font-face').length, 2, 'and only that one');
+  assert.match(forPlatform, /^\/\* The Monaidea brand for the pages the platform publishes\. Version [0-9a-f]{8}\. [^\n]*\*\/\n@font-face/, 'its first line names its version');
 });
 
 test('this repository\'s own site is stamped, with the platform\'s files', () => {
