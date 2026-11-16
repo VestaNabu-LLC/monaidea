@@ -1,10 +1,9 @@
-// Contact form (2026-11-02). The same file runs on www.monaidea.com (repo monaidea),
-// ledgerstone.monaidea.com/support/ and flagstone.monaidea.com/support/ (their site repos): keep the
-// copies identical. It sends the message to Monaidea's contact Worker on Cloudflare
-// (https://forms.monaidea.com, source in the monaidea repo's worker/), which checks Cloudflare Turnstile
-// and emails it to support@monaidea.com through Postmark. Turnstile loads only once someone starts
-// using the form. Optional: data-product="Ledgerstone" on the form puts the product in the topic, and
-// ?topic=early-access in the page address picks the topic whose text is "Early access".
+// Contact form (2026-11-02). One file for every Monaidea site: the stamper (brand/stamp.mjs) puts it
+// on each page that has <form id="contact-form">. It sends the message to Monaidea's contact Worker on
+// Cloudflare (https://forms.monaidea.com, source in this repo's worker/), which checks Cloudflare
+// Turnstile and emails it to support@monaidea.com through Postmark. Turnstile loads only once someone
+// starts using the form. Optional: data-product="Ledgerstone" on the form puts the product in the
+// topic, and ?topic=early-access in the page address picks the topic whose text is "Early access".
 (() => {
   const form = document.getElementById('contact-form');
   if (!form) return;
