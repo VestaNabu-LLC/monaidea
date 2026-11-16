@@ -47,9 +47,13 @@ th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
 th{color:var(--fg);font-weight:600}
 img,svg,video{max-width:100%;height:auto}
 
-/* the builder's link back to its category, first on the page */
-body>a:first-child,body>header+a,main>a:first-child{display:block;margin-bottom:28px;color:var(--dim);font-size:14px}
-body>a:first-child::before,body>header+a::before,main>a:first-child::before{content:"\2190 \00a0"}
+/* the way back, first on a product's page: the builder's link to its category,
+   or the trail it wrote around that link (a paragraph or a nav before the
+   title). One look for all of them, the hand-built pages' .crumbs. */
+body>a:first-child,body>header+a,main>a:first-child,body>header+:is(p,nav):has(>a:first-child):has(+h1),main>:is(p,nav):first-child:has(>a:first-child):has(+h1){display:block;max-width:none;margin-bottom:20px;color:var(--dim);font-size:14px}
+body>header+:is(p,nav):has(+h1) a,main>:is(p,nav):first-child:has(+h1) a{color:var(--muted)}
+body>header+:is(p,nav):has(+h1) a:hover,main>:is(p,nav):first-child:has(+h1) a:hover{color:var(--fg)}
+body>a:first-child,body>header+a,main>a:first-child{color:var(--muted)}
 
 /* the buy link, and a note */
 .buy,a.buy{display:inline-flex;align-items:center;gap:8px;margin:8px 0 24px;padding:12px 22px;border-radius:12px;background:var(--grad);color:#fff;font:600 15px var(--body);box-shadow:0 8px 30px -8px rgba(99,102,241,.7);transition:transform .2s,box-shadow .2s}

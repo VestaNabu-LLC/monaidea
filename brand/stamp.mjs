@@ -57,6 +57,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const BRAND = dirname(fileURLToPath(import.meta.url));
 const brandText = (name) => readFileSync(join(BRAND, name), 'utf8');
 
+const hash = (text) => createHash('sha256').update(text).digest('hex').slice(0, 8);
+
 export class Refused extends Error {}
 const refuse = (why) => { throw new Refused(why); };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -144,7 +146,10 @@ export function platformStyle() {
     if (!face) refuse(`brand/css/font.css: no @font-face for /fonts/${file}`);
     return face.replace(`url(/fonts/${file})`, `url(data:font/woff2;base64,${readFileSync(join(BRAND, 'fonts', file)).toString('base64')})`);
   });
-  const text = [...inside, css('tokens', 'chrome', 'platform')].join('\n').trim();
+  const rules = [...inside, css('tokens', 'chrome', 'platform')].join('\n').trim();
+  // Its first line names its version, so whoever pastes it can see that it is
+  // the new one and not a copy a browser kept.
+  const text = `/* The Monaidea brand for the pages the platform publishes. Version ${hash(rules)}. Written by brand/stamp.mjs: change brand/css, not this. */\n${rules}`;
   if (Buffer.byteLength(text) > 65536 || PLATFORM_REFUSES.test(text)) {
     refuse('the platform stylesheet is not one the platform takes: at most 65536 bytes, nothing that runs, nothing loaded from another host');
   }
@@ -247,7 +252,6 @@ const walk = (dir, under = '') => readdirSync(join(dir, under), { withFileTypes:
   const path = under ? `${under}/${entry.name}` : entry.name;
   return entry.isDirectory() ? walk(dir, path) : [path];
 });
-const hash = (text) => createHash('sha256').update(text).digest('hex').slice(0, 8);
 // The address of a page: its folder for index.html, else the file.
 const pathOf = (file) => '/' + file.replace(/(^|\/)index\.html$/, '$1');
 const isFile = (path) => existsSync(path) && statSync(path).isFile();
