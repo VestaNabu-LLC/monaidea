@@ -17,7 +17,7 @@ html>body>:is(p,ul,ol,dl,blockquote,pre,table){padding-right:clamp(20px,calc(100
 html>body>:is(ul,ol){padding-left:42px}
 body>.note{max-width:720px;margin-left:max(20px,calc(50% - 540px));padding-left:22px;padding-right:22px}
 html>body>.buy{margin-left:max(20px,calc(50% - 540px))}
-body>a:not(.buy){display:block}
+body>header+a,body>a:first-child{display:block}
 body>main,body>header+*{padding-top:56px}
 body>:last-child:not(footer),main{padding-bottom:40px}
 
