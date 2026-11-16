@@ -27,13 +27,23 @@ footer[data-of] p{margin:12px 0 0;color:var(--dim)}
 @media (max-width:640px){header[data-of]{position:static}header[data-of] nav{gap:8px 16px}header[data-of] .brand{width:100%}}
 /* The pages the platform publishes (product pages, category pages, the shops
    index): plain HTML with no classes but the platform's own, .cards, .buy and
-   .note. */
+   .note. They are made to look like the hand-built pages (site.css) without
+   their markup: the same sky, the same width as the header, the same centred
+   title on a page that lists things, the same measure for running text. */
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;min-height:100%;background:var(--bg) no-repeat fixed radial-gradient(1200px 600px at 50% -10%,#121a3a 0%,transparent 60%)}
+html{-webkit-text-size-adjust:100%;min-height:100%;background:var(--bg)}
 body{margin:0;min-height:100vh;color:var(--fg);font:16px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body>*:not(header):not(footer){max-width:920px;margin-left:auto;margin-right:auto;padding-left:20px;padding-right:20px}
-body>.note{max-width:880px;padding-left:22px;padding-right:22px}
-body>ul,body>ol{padding-left:42px}
+/* the sky: site.css's .sky, its three lights and its grid, painted behind the page */
+body::before,body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
+body::before{background:radial-gradient(circle 380px at calc(8% + 260px) 100px,rgba(99,102,241,.34),rgba(99,102,241,.14) 55%,transparent),radial-gradient(circle 340px at calc(96% - 220px) 280px,rgba(56,189,248,.3),rgba(56,189,248,.12) 55%,transparent),radial-gradient(circle 300px at calc(38% + 190px) 610px,rgba(168,85,247,.18),rgba(168,85,247,.07) 55%,transparent),radial-gradient(1200px 600px at 50% -10%,#121a3a 0%,transparent 60%)}
+body::after{background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 70% 55% at 50% 20%,#000 30%,transparent 75%);mask-image:radial-gradient(ellipse 70% 55% at 50% 20%,#000 30%,transparent 75%);opacity:.55}
+/* as wide as the header, so a page starts under the brand's mark; running text keeps a readable measure */
+body>*:not(header):not(footer){max-width:1120px;margin-left:auto;margin-right:auto;padding-left:20px;padding-right:20px}
+main>:is(p,ul,ol,dl,blockquote,pre,table,.note):not(.cards){max-width:720px}
+html>body>:is(p,ul,ol,dl,blockquote,pre,table){padding-right:clamp(20px,calc(100% - 740px),380px)}
+html>body>:is(ul,ol){padding-left:42px}
+body>.note{max-width:720px;margin-left:max(20px,calc(50% - 540px));padding-left:22px;padding-right:22px}
+html>body>.buy{margin-left:max(20px,calc(50% - 540px))}
 body>main,body>header+*{padding-top:56px}
 body>:last-child:not(footer),main{padding-bottom:40px}
 
@@ -72,6 +82,13 @@ body>a:first-child::before,body>header+a::before,main>a:first-child::before{cont
 .buy,a.buy{display:inline-flex;align-items:center;gap:8px;margin:8px 0 24px;padding:12px 22px;border-radius:12px;background:var(--grad);color:#fff;font:600 15px var(--body);box-shadow:0 8px 30px -8px rgba(99,102,241,.7);transition:transform .2s,box-shadow .2s}
 .buy:hover,a.buy:hover{color:#fff;transform:translateY(-2px);box-shadow:0 14px 40px -8px rgba(99,102,241,.85)}
 .note{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:18px 22px;margin-top:24px;margin-bottom:24px}
+
+/* a page that lists things (the shops index, a category): its title is the landing page's */
+main:has(>.cards)>h1{max-width:900px;margin:40px auto 72px;padding-bottom:.12em;text-align:center;font-size:clamp(40px,7vw,76px);line-height:1.02;background:var(--grad);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 8s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+main:has(>.cards)>h2{font-size:clamp(28px,4vw,40px);margin-top:72px}
+main:has(>.cards)>h1+h2{margin-top:0}
+main:has(>.cards)>h2+p{margin:-4px 0 0;max-width:620px}
 
 /* cards: category and shops pages */
 .cards{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));list-style:none;padding:0;margin:24px 0 8px}

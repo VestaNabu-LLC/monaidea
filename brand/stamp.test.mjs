@@ -77,6 +77,8 @@ test('a page: content only, or it is refused', () => {
     [PAGE + '<link rel="stylesheet" href="/mine.css"><main>x</main>', /before <main> a page has only/],
     [PAGE + '<link rel="canonical" href="https://one.example/"><main>x</main>', /before <main> a page has only/],
     [PAGE + '<meta property="og:url" content="https://one.example/"><main>x</main>', /before <main> a page has only/],
+    [PAGE + '<meta property="og:image" content="https://other.example/a.png"><main>x</main>', /og:image is a picture of this site/],
+    [PAGE + '<meta property="og:image" content="//other.example/a.png"><main>x</main>', /og:image is a picture of this site/],
     [PAGE + '<script>alert(1)</script><main>x</main>', /before <main> a page has only/],
     [PAGE + '<script type="application/ld+json">{not json}</script><main>x</main>', /not valid JSON/],
     [PAGE + '<script type="application/ld+json">{"a":"</b>"}</script><main>x</main>', /no < in it/],
@@ -108,7 +110,7 @@ test('a site: every page gets the same frame, stylesheet and address', () => {
     'pages/index.html': page('<h1 id="top">Home</h1><a href="/app/guide/#steps">guide</a> <a href="/app/media/a%20b.txt?x=1">file</a> <a href="/fonts/inter.woff2">font</a> <a href="#top">up</a>'),
     'pages/404.html': page('<h1>Not here</h1>'),
     'pages/app/index.html': page('<form id="contact-form"></form>'),
-    'pages/app/guide/index.html': `<title>Guide</title>\n<meta name="description" content="How.">\n<meta property="og:type" content="article">\n<meta name="robots" content="noindex">\n<main><h2 id="steps">Steps</h2></main>`,
+    'pages/app/guide/index.html': `<title>Guide</title>\n<meta name="description" content="How.">\n<meta property="og:type" content="article">\n<meta property="og:image" content="/app/media/a%20b.txt">\n<meta name="robots" content="noindex">\n<main><h2 id="steps">Steps</h2></main>`,
     'app/media/a b.txt': 'as it is',
     'tools/notes.html': 'not published, so not a page',
   });
@@ -139,6 +141,8 @@ test('a site: every page gets the same frame, stylesheet and address', () => {
   const guide = out.get('app/guide/index.html');
   assert.ok(guide.includes('<a href="/app/">Overview</a><a href="/app/guide/" aria-current="page">Guide</a>'));
   assert.ok(guide.includes('<link rel="canonical" href="https://one.example/app/guide/">') && guide.includes('og:type" content="article"') && guide.includes('<meta name="robots" content="noindex">'));
+  assert.ok(guide.includes('<meta property="og:image" content="https://one.example/app/media/a%20b.txt"><meta name="twitter:card" content="summary_large_image">'), 'a picture for sharing, by its full address');
+  assert.ok(!home.includes('og:image') && !home.includes('twitter:card'));
   const missing = out.get('404.html');
   assert.ok(missing.includes('<meta name="robots" content="noindex">') && !missing.includes('canonical') && !missing.includes('og:url'));
   assert.equal(out.get('sitemap.xml').match(/<loc>[^<]+<\/loc>/g).join(), '<loc>https://one.example/app/</loc>,<loc>https://one.example/</loc>');
@@ -215,6 +219,7 @@ test('a site: nothing is built when one thing is wrong, and every reason is give
     [{ ...ok, 'pages/a.html': page('<a href="/#bottom">x</a>') }, /no id="bottom" on that page/],
     [{ ...ok, 'pages/a.html': page('<a href="#bottom">x</a>') }, /no id="bottom"/],
     [{ ...ok, 'pages/a.html': page('<img src="/missing.png">') }, /leads nowhere/],
+    [{ ...ok, 'pages/a.html': PAGE + '<meta property="og:image" content="/missing.png"><main>x</main>' }, /pages\/a\.html: \/missing\.png leads nowhere/],
     [{ ...ok, 'pages/a.html': page('<a href="/%E0%A4%A">x</a>') }, /leads nowhere/],
     [{ ...ok, 'pages/a.html': page('<a href="/stray.html">x</a>'), 'stray.html': 'x' }, /leads nowhere/],
     [{ ...ok, 'pages/a.html': page('<a href="/pages/index.html">x</a>') }, /leads nowhere/],
