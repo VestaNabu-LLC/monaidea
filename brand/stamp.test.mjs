@@ -1,11 +1,12 @@
 // Run: node --test brand/stamp.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Refused, buildSite, platformStyle, readFrame, readPage, siteStyle, writeSite } from './stamp.mjs';
+import { Refused, buildSite, difference, platformStyle, readFrame, readPage, siteStyle, writeSite } from './stamp.mjs';
 
 const BRAND = dirname(fileURLToPath(import.meta.url));
 const frameText = readFileSync(join(BRAND, 'frame.txt'), 'utf8');
@@ -13,7 +14,7 @@ const PAGE = '<title>A page</title>\n<meta name="description" content="What it i
 const page = (main) => `${PAGE}<main>${main}</main>\n`;
 const refused = (fn, pattern) => assert.throws(fn, (e) => e instanceof Refused && pattern.test(e.message), `expected a refusal matching ${pattern}`);
 
-// A site in a temporary folder: { 'site.json': {...}, 'pages/index.html': '…' }.
+// A site in a temporary folder: { 'site.json': {...}, 'pages/index.html': '…', 'a/picture.png': '…' }.
 function site(files) {
   const dir = mkdtempSync(join(tmpdir(), 'stamp-'));
   for (const [path, text] of Object.entries({ 'site.json': { base: 'https://one.example' }, ...files })) {
@@ -103,12 +104,13 @@ test('a page: content only, or it is refused', () => {
 
 test('a site: every page gets the same frame, stylesheet and address', () => {
   const dir = site({
-    'site.json': { base: 'https://one.example', notes: ['A note of this site.'], sections: { app: { name: 'App', mark: ['M1 2h3'], pages: [['Overview', '/app/'], ['Guide', '/app/guide/']] } } },
-    'pages/index.html': page('<h1 id="top">Home</h1><a href="/app/guide/#steps">guide</a> <a href="/app/media/a.txt">file</a> <a href="#top">up</a>'),
+    'site.json': { base: 'https://one.example', notes: ['A note of this site.'], private: ['tools'], sections: { app: { name: 'App', mark: ['M1 2h3'], pages: [['Overview', '/app/'], ['Guide', '/app/guide/']] } } },
+    'pages/index.html': page('<h1 id="top">Home</h1><a href="/app/guide/#steps">guide</a> <a href="/app/media/a%20b.txt?x=1">file</a> <a href="/fonts/inter.woff2">font</a> <a href="#top">up</a>'),
     'pages/404.html': page('<h1>Not here</h1>'),
     'pages/app/index.html': page('<form id="contact-form"></form>'),
     'pages/app/guide/index.html': `<title>Guide</title>\n<meta name="description" content="How.">\n<meta property="og:type" content="article">\n<meta name="robots" content="noindex">\n<main><h2 id="steps">Steps</h2></main>`,
-    'pages/app/media/a.txt': 'as it is',
+    'app/media/a b.txt': 'as it is',
+    'tools/notes.html': 'not published, so not a page',
   });
   const out = buildSite(dir);
   const html = [...out].filter(([path]) => path.endsWith('.html'));
@@ -141,15 +143,62 @@ test('a site: every page gets the same frame, stylesheet and address', () => {
   assert.ok(missing.includes('<meta name="robots" content="noindex">') && !missing.includes('canonical') && !missing.includes('og:url'));
   assert.equal(out.get('sitemap.xml').match(/<loc>[^<]+<\/loc>/g).join(), '<loc>https://one.example/app/</loc>,<loc>https://one.example/</loc>');
   assert.equal(out.get('robots.txt'), 'User-agent: *\nAllow: /\nSitemap: https://one.example/sitemap.xml\n');
+  assert.ok(out.get('_config.yml').endsWith('\nexclude: [pages, brand, site.json, README.md, CLAUDE.md, tools]\n'), 'GitHub Pages is told what not to publish');
   assert.equal(out.get('style.css'), siteStyle());
-  assert.ok(out.has('site.js') && out.has('contact.js') && out.has('fonts/inter.woff2') && out.has('app/media/a.txt'));
+  assert.ok(out.has('site.js') && out.has('contact.js') && out.get('fonts/inter.woff2').length > 10000);
   assert.ok(!out.has('platform/style.css'), 'only the brand\'s own site publishes the platform\'s files');
+  assert.ok(!out.has('app/media/a b.txt'), 'a file that is published as it is stays as it is');
+});
 
-  const written = join(dir, 'out');
-  writeSite(dir, written);
-  assert.equal(readFileSync(join(written, 'app/media/a.txt'), 'utf8'), 'as it is');
-  assert.equal(readFileSync(join(written, 'app/index.html'), 'utf8'), app);
-  assert.ok(readFileSync(join(written, 'fonts/inter.woff2')).length > 10000);
+test('a site: written in place, checked, and kept in step with its sources', () => {
+  const dir = site({
+    'pages/index.html': page('<h1>Home</h1><a href="/a/">a</a>'),
+    'pages/a/index.html': page('<h1>A</h1>'),
+    'picture.png': 'as it is',
+  });
+  const all = [...buildSite(dir).keys()].sort();
+  assert.deepEqual(difference(dir), { write: [...buildSite(dir).keys()], remove: [] }, 'nothing is written yet');
+  assert.deepEqual(writeSite(dir).write.sort(), all);
+  assert.equal(readFileSync(join(dir, 'a/index.html'), 'utf8'), buildSite(dir).get('a/index.html'));
+  assert.ok(readFileSync(join(dir, 'fonts/inter.woff2')).equals(readFileSync(join(BRAND, 'fonts/inter.woff2'))));
+  assert.equal(readFileSync(join(dir, 'picture.png'), 'utf8'), 'as it is');
+  assert.deepEqual(difference(dir), { write: [], remove: [] }, 'written: the check passes');
+  assert.deepEqual(writeSite(dir).write, [], 'a second run writes nothing');
+
+  // A finished page edited by hand, a page nobody stamped, a source that is gone.
+  writeFileSync(join(dir, 'a/index.html'), 'edited by hand');
+  writeFileSync(join(dir, 'stray.html'), '<p>not from pages/</p>');
+  rmSync(join(dir, 'style.css'));
+  assert.deepEqual(difference(dir), { write: ['style.css', 'a/index.html'], remove: ['stray.html'] });
+  writeFileSync(join(dir, 'pages/index.html'), page('<h1>Home</h1>'));
+  rmSync(join(dir, 'pages/a/index.html'));
+  const second = writeSite(dir);
+  assert.deepEqual([second.write.sort(), second.remove.sort()], [['index.html', 'sitemap.xml', 'style.css'], ['a/index.html', 'stray.html']]);
+  assert.ok(!existsSync(join(dir, 'a/index.html')) && !existsSync(join(dir, 'stray.html')) && existsSync(join(dir, 'picture.png')));
+  assert.deepEqual(difference(dir), { write: [], remove: [] });
+
+  // The command line: what the check on every push runs.
+  const run = (...args) => spawnSync(process.execPath, [join(BRAND, 'stamp.mjs'), ...args], { encoding: 'utf8' });
+  assert.equal(run(dir, '--check').status, 0);
+  writeFileSync(join(dir, 'stray.html'), 'x');
+  assert.equal(run(dir, '--check').status, 1, 'a page nobody stamped fails the check by itself');
+  writeFileSync(join(dir, 'index.html'), 'edited by hand');
+  const failed = run(dir, '--check');
+  assert.equal(failed.status, 1);
+  assert.match(failed.stderr, /to write: {2}index\.html\n {2}to remove: stray\.html/);
+  assert.equal(readFileSync(join(dir, 'index.html'), 'utf8'), 'edited by hand', '--check writes nothing');
+  assert.equal(run(dir).status, 0);
+  assert.equal(run(dir, '--check').status, 0);
+  assert.equal(run().status, 2);
+  assert.equal(run(dir, '--chek').status, 2);
+
+  // A refusal writes nothing at all.
+  writeFileSync(join(dir, 'pages/index.html'), page('<h1 class="nope">Home</h1>'));
+  const before = readFileSync(join(dir, 'index.html'), 'utf8');
+  refused(() => writeSite(dir), /class "nope"/);
+  assert.equal(readFileSync(join(dir, 'index.html'), 'utf8'), before);
+  assert.equal(run(dir).status, 1);
+  assert.match(run(dir, '--check').stderr, /Nothing written\. The stamper refuses:\npages\/index\.html: the class "nope"/);
 });
 
 test('a site: the menu item of the site itself is marked', () => {
@@ -161,15 +210,27 @@ test('a site: the menu item of the site itself is marked', () => {
 test('a site: nothing is built when one thing is wrong, and every reason is given', () => {
   const ok = { 'pages/index.html': page('<h1 id="top">x</h1>') };
   for (const [files, why] of [
-    [{ ...ok, 'pages/a.html': page('<a href="/nowhere/">x</a>') }, /a\.html: \/nowhere\/ leads nowhere/],
+    [{ ...ok, 'pages/a.html': page('<a href="/nowhere/">x</a>') }, /pages\/a\.html: \/nowhere\/ leads nowhere/],
     [{ ...ok, 'pages/a.html': page('<a href="/index.html">x</a>') }, /leads nowhere/],
     [{ ...ok, 'pages/a.html': page('<a href="/#bottom">x</a>') }, /no id="bottom" on that page/],
     [{ ...ok, 'pages/a.html': page('<a href="#bottom">x</a>') }, /no id="bottom"/],
     [{ ...ok, 'pages/a.html': page('<img src="/missing.png">') }, /leads nowhere/],
-    [{ ...ok, 'pages/style.css': 'p{}' }, /style\.css: this name is the stamper's/],
-    [{ ...ok, 'pages/fonts/mine.woff2': 'x' }, /this name is the stamper's/],
-    [{ ...ok, 'pages/platform/index.html': page('x') }, /this name is the stamper's/],
-    [{ ...ok, 'pages/a.html': page('<p class="nope">x</p>'), 'pages/b.html': '<main>x</main>' }, /a\.html: the class "nope"[\s\S]*b\.html: no <title>/],
+    [{ ...ok, 'pages/a.html': page('<a href="/%E0%A4%A">x</a>') }, /leads nowhere/],
+    [{ ...ok, 'pages/a.html': page('<a href="/stray.html">x</a>'), 'stray.html': 'x' }, /leads nowhere/],
+    [{ ...ok, 'pages/a.html': page('<a href="/pages/index.html">x</a>') }, /leads nowhere/],
+    [{ ...ok, 'pages/a.html': page('<a href="/site.json">x</a>') }, /leads nowhere/],
+    [{ ...ok, 'pages/a.html': page('<a href="/.hidden/x.txt">x</a>'), '.hidden/x.txt': 'x' }, /leads nowhere/],
+    [{ ...ok, 'pages/a.html': page('<a href="/_drafts/x.txt">x</a>'), '_drafts/x.txt': 'x' }, /leads nowhere/],
+    [{ ...ok, 'site.json': { base: 'https://one.example', private: ['worker'] }, 'pages/a.html': page('<a href="/worker/x.js">x</a>'), 'worker/x.js': 'x' }, /leads nowhere/],
+    [{ ...ok, 'pages/a.html': page('<a href="/media">x</a>'), 'media/x.txt': 'x' }, /leads nowhere/],
+    [{ ...ok, 'pages/picture.png': 'x' }, /pages\/picture\.png: pages\/ holds pages only/],
+    [{ ...ok, 'pages/platform/index.html': page('x') }, /pages\/platform\/index\.html: this name is the stamper's, or one that is not published/],
+    [{ ...ok, 'pages/fonts/index.html': page('x') }, /this name is the stamper's/],
+    [{ ...ok, 'pages/brand/index.html': page('x') }, /not published/],
+    [{ ...ok, 'pages/_x/index.html': page('x') }, /not published/],
+    [{ ...ok, 'site.json': { base: 'https://one.example', private: ['worker'] }, 'pages/worker/index.html': page('x') }, /not published/],
+    [{ ...ok, 'site.json': { base: 'https://one.example', private: ['../x'] } }, /"private" is a list/],
+    [{ ...ok, 'pages/a.html': page('<p class="nope">x</p>'), 'pages/b.html': '<main>x</main>' }, /pages\/a\.html: the class "nope"[\s\S]*pages\/b\.html: no <title>/],
     [{ ...ok, 'site.json': { base: 'http://one.example' } }, /"base" is the site's address/],
     [{ ...ok, 'site.json': { base: 'https://one.example/' } }, /"base" is the site's address/],
     [{ ...ok, 'site.json': '{' }, /site\.json/],
@@ -177,11 +238,7 @@ test('a site: nothing is built when one thing is wrong, and every reason is give
     [{ ...ok, 'site.json': { base: 'https://one.example', sections: { app: { name: 'App', mark: ['M1 2'], pages: [['Overview', '/app/']] } } } }, /section "app": no page at \/app\//],
     [{ ...ok, 'site.json': { base: 'https://one.example', sections: { app: { name: 'App', mark: ['"><script>'], pages: [['Overview', '/app/']] } } } }, /"mark" is a list of SVG path data/],
     [{ ...ok, 'site.json': { base: 'https://one.example', sections: { app: { name: 'App', mark: ['M1 2'], pages: [['Overview', '/other/']] } } } }, /"pages" is a list/],
-    [{ 'pages/readme.txt': 'no pages folder is not the case here, but no page either' }, /^$/],
-  ]) {
-    if (String(why) === '/^$/') { assert.equal([...buildSite(site(files)).keys()].filter((p) => p.endsWith('.html')).length, 0); continue; }
-    refused(() => buildSite(site(files)), why);
-  }
+  ]) refused(() => buildSite(site(files)), why);
   refused(() => buildSite(site({})), /no pages\/ folder/);
 });
 
@@ -209,4 +266,5 @@ test('this repository\'s own site is stamped, with the platform\'s files', () =>
   assert.ok(out.get('index.html').includes('<header data-of="the brand">'));
   assert.equal(out.get('platform/style.css'), platformStyle(frame) + '\n');
   assert.equal(out.get('platform/frame.txt'), frameText);
+  assert.deepEqual(difference(join(BRAND, '..')), { write: [], remove: [] }, 'run `node brand/stamp.mjs .` and commit what it writes');
 });

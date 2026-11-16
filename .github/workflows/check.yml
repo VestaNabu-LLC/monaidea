@@ -1,0 +1,21 @@
+# Checks every push to main and every pull request; it publishes nothing.
+# GitHub Pages serves the main branch of this repository as it is (Settings >
+# Pages > Deploy from a branch), so the finished pages are committed. This
+# check runs the tests and fails when the files here are not what the stamper
+# writes from pages/ and brand/: then run `node brand/stamp.mjs .` and commit
+# what it wrote.
+name: check
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: node --version
+      - run: node --test brand/stamp.test.mjs worker/test/index.test.mjs
+      - run: node brand/stamp.mjs . --check
