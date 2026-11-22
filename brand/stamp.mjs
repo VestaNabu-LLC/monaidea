@@ -137,7 +137,7 @@ export const siteStyle = () => css('font', 'tokens', 'chrome', 'site');
 // typeface travels inside the stylesheet, and the text and code typefaces,
 // which would not fit in the 64 KB the platform takes, fall back to the
 // reader's own.
-const PLATFORM_FONTS = ['space-grotesk.woff2'];
+const PLATFORM_FONTS = ['barlow-condensed-700.woff2'];
 const PLATFORM_REFUSES = /<\/|<script|javascript:|expression\(|@import|url\s*\(\s*["']?\s*(https?:)?\/\//i;
 export function platformStyle() {
   const faces = brandText('css/font.css').match(/@font-face\{[^}]*\}/g) ?? [];
@@ -287,9 +287,9 @@ function readSite(siteDir) {
 }
 
 const icon = (paths) => 'data:image/svg+xml,' + encodeURIComponent(paths).replace(/'/g, '%27');
-const BRAND_ICON = icon('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#6366f1"/><path d="M12 5 5 9l7 4 7-4-7-4Zm-7 8 7 4 7-4" fill="none" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg>');
+const BRAND_ICON = icon('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#2b4cc4"/><rect x="3" y="8.5" width="18" height="7" rx="1.2" fill="#ffd23f" transform="rotate(-6 12 12)"/></svg>');
 const markPaths = (section) => section.mark.map((d) => `<path d="${d}"/>`).join('');
-const sectionIcon = (section) => icon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#6366f1"/><g fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(4 4) scale(.75)">${markPaths(section)}</g></svg>`);
+const sectionIcon = (section) => icon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#000"/><g fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(4 4) scale(.75)">${markPaths(section)}</g></svg>`);
 
 function subBar(section, path) {
   const [, home] = section.pages[0];
@@ -369,7 +369,7 @@ export function buildSite(siteDir) {
     const og = { type: 'website', title: page.title, description: page.description, ...page.og };
     out.set(page.file, [
       '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
-      `<title>${page.title}</title><meta name="description" content="${page.description}"><meta name="theme-color" content="#070a12">`,
+      `<title>${page.title}</title><meta name="description" content="${page.description}"><meta name="theme-color" content="#2b4cc4">`,
       missing || page.robots ? `<meta name="robots" content="${page.robots || 'noindex'}">` : '',
       missing ? '' : `<link rel="canonical" href="${address}">`,
       missing ? '' : `<meta property="og:site_name" content="${esc(frame.brand.name)}"><meta property="og:type" content="${og.type}"><meta property="og:title" content="${og.title}"><meta property="og:description" content="${og.description}"><meta property="og:url" content="${address}">${og.image ? `<meta property="og:image" content="${site.base}${og.image}"><meta name="twitter:card" content="summary_large_image">` : ''}`,

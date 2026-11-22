@@ -54,7 +54,7 @@ test('the frame: what the platform would refuse is refused here', () => {
 });
 
 test('a page: what the stamper reads from it', () => {
-  const p = readPage(`<title>T &amp; t</title>\n<meta name="description" content="D">\n<meta property="og:type" content="article">\n<script type="application/ld+json">{"a":1}</script>\n<main class="prose" id="top"><!-- a note --><a href="#top">up</a> <a href="/x/?a=1&amp;b=2#y">x</a><form id="contact-form" data-product="P"></form></main>\n`, 'a/index.html');
+  const p = readPage(`<title>T &amp; t</title>\n<meta name="description" content="D">\n<meta property="og:type" content="article">\n<script type="application/ld+json">{"a":1}</script>\n<main class="doc" id="top"><!-- a note --><a href="#top">up</a> <a href="/x/?a=1&amp;b=2#y">x</a><form id="contact-form" data-product="P"></form></main>\n`, 'a/index.html');
   assert.equal(p.title, 'T &amp; t');
   assert.equal(p.description, 'D');
   assert.deepEqual(p.og, { type: 'article' });
@@ -107,7 +107,7 @@ test('a page: content only, or it is refused', () => {
 test('a site: every page gets the same frame, stylesheet and address', () => {
   const dir = site({
     'site.json': { base: 'https://one.example', notes: ['A note of this site.'], private: ['tools'], sections: { app: { name: 'App', mark: ['M1 2h3'], pages: [['Overview', '/app/'], ['Guide', '/app/guide/']] } } },
-    'pages/index.html': page('<h1 id="top">Home</h1><a href="/app/guide/#steps">guide</a> <a href="/app/media/a%20b.txt?x=1">file</a> <a href="/fonts/inter.woff2">font</a> <a href="#top">up</a>'),
+    'pages/index.html': page('<h1 id="top">Home</h1><a href="/app/guide/#steps">guide</a> <a href="/app/media/a%20b.txt?x=1">file</a> <a href="/fonts/barlow-400.woff2">font</a> <a href="#top">up</a>'),
     'pages/404.html': page('<h1>Not here</h1>'),
     'pages/app/index.html': page('<form id="contact-form"></form>'),
     'pages/app/guide/index.html': `<title>Guide</title>\n<meta name="description" content="How.">\n<meta property="og:type" content="article">\n<meta property="og:image" content="/app/media/a%20b.txt">\n<meta name="robots" content="noindex">\n<main><h2 id="steps">Steps</h2></main>`,
@@ -149,7 +149,7 @@ test('a site: every page gets the same frame, stylesheet and address', () => {
   assert.equal(out.get('robots.txt'), 'User-agent: *\nAllow: /\nSitemap: https://one.example/sitemap.xml\n');
   assert.ok(out.get('_config.yml').endsWith('\nexclude: [pages, brand, site.json, README.md, CLAUDE.md, tools]\n'), 'GitHub Pages is told what not to publish');
   assert.equal(out.get('style.css'), siteStyle());
-  assert.ok(out.has('site.js') && out.has('contact.js') && out.get('fonts/inter.woff2').length > 10000);
+  assert.ok(out.has('site.js') && out.has('contact.js') && out.get('fonts/barlow-400.woff2').length > 10000);
   assert.ok(!out.has('platform/style.css'), 'only the brand\'s own site publishes the platform\'s files');
   assert.ok(!out.has('app/media/a b.txt'), 'a file that is published as it is stays as it is');
 });
@@ -164,7 +164,7 @@ test('a site: written in place, checked, and kept in step with its sources', () 
   assert.deepEqual(difference(dir), { write: [...buildSite(dir).keys()], remove: [] }, 'nothing is written yet');
   assert.deepEqual(writeSite(dir).write.sort(), all);
   assert.equal(readFileSync(join(dir, 'a/index.html'), 'utf8'), buildSite(dir).get('a/index.html'));
-  assert.ok(readFileSync(join(dir, 'fonts/inter.woff2')).equals(readFileSync(join(BRAND, 'fonts/inter.woff2'))));
+  assert.ok(readFileSync(join(dir, 'fonts/barlow-400.woff2')).equals(readFileSync(join(BRAND, 'fonts/barlow-400.woff2'))));
   assert.equal(readFileSync(join(dir, 'picture.png'), 'utf8'), 'as it is');
   assert.deepEqual(difference(dir), { write: [], remove: [] }, 'written: the check passes');
   assert.deepEqual(writeSite(dir).write, [], 'a second run writes nothing');
@@ -250,8 +250,8 @@ test('a site: nothing is built when one thing is wrong, and every reason is give
 test('the stylesheets: one source, two outputs', () => {
   const forSites = siteStyle();
   const forPlatform = platformStyle();
-  assert.ok(forSites.includes('url(/fonts/inter.woff2)') && forSites.includes('url(/fonts/space-grotesk.woff2)') && forSites.includes('url(/fonts/jetbrains-mono.woff2)'));
-  for (const shared of ['--a2:#6366f1', 'header[data-of]{position:sticky', 'footer[data-of]{max-width', '@font-face{font-family:"Space Grotesk"']) {
+  assert.ok(forSites.includes('url(/fonts/barlow-condensed-700.woff2)') && forSites.includes('url(/fonts/barlow-400.woff2)') && forSites.includes('url(/fonts/barlow-600.woff2)'));
+  for (const shared of ['--board:#2b4cc4', 'header[data-of]{position:relative', 'footer[data-of]{margin-top', '@font-face{font-family:"Barlow Condensed"']) {
     assert.ok(forSites.includes(shared) && forPlatform.includes(shared), `both have ${shared}`);
   }
   assert.ok(forSites.includes('.subnav{') && !forPlatform.includes('.subnav'));
@@ -265,8 +265,8 @@ test('the stylesheets: one source, two outputs', () => {
   assert.ok(!refusedByThePlatform.test(forPlatform), 'nothing loaded from another host');
   assert.ok(Buffer.byteLength(forPlatform) <= 65536 && forPlatform === forPlatform.trim());
   assert.ok(!forPlatform.includes('url(/fonts/'), 'a page of the platform has no /fonts/ to ask');
-  const embedded = readFileSync(join(BRAND, 'fonts/space-grotesk.woff2')).toString('base64');
-  assert.ok(forPlatform.includes(`font-weight:300 700;font-display:swap;src:url(data:font/woff2;base64,${embedded}) format("woff2")}`), 'the display typeface travels inside');
+  const embedded = readFileSync(join(BRAND, 'fonts/barlow-condensed-700.woff2')).toString('base64');
+  assert.ok(forPlatform.includes(`font-weight:700;font-display:swap;src:url(data:font/woff2;base64,${embedded}) format("woff2")}`), 'the display typeface travels inside');
   assert.equal(forPlatform.split('@font-face').length, 2, 'and only that one');
   assert.match(forPlatform, /^\/\* The Monaidea brand for the pages the platform publishes\. Version [0-9a-f]{8}\. [^\n]*\*\/\n@font-face/, 'its first line names its version');
 });
