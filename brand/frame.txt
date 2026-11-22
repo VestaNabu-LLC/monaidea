@@ -6,4 +6,3 @@ Foot | Terms | https://www.monaidea.com/terms/
 Foot | Privacy | https://www.monaidea.com/privacy/
 Foot | Refunds | https://www.monaidea.com/refunds/
 Note | © 2026 VestaNabu LLC
-Shop | Admin Kits | https://adminkits.monaidea.com/ | Workbooks and checklists for Jira and Confluence admins.

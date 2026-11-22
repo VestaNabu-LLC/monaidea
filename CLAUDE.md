@@ -16,7 +16,7 @@ this file.
 | Site | Pages written in | Published by | The brand reaches it |
 |---|---|---|---|
 | www.monaidea.com | this repo, `pages/` | GitHub Pages, serving `main` as it is | the stamper writes the finished pages here; they are committed |
-| mapstoneapps.com/`<app>` (until 2026-11-22 atlapps.monaidea.com, which forwards there) | repo `VestaNabu-LLC/atlapps-site`, `pages/` | GitHub Pages, serving its `main` as it is | this repo's stamper, run there, writes the finished pages and a copy of the stylesheet, fonts and scripts; they are committed |
+| mapstoneapps.com/`<app>`, and Admin Kits at `/adminkits/` (until 2026-11-22 atlapps.monaidea.com and adminkits.monaidea.com, which forward there) | repo `VestaNabu-LLC/mapstoneapps-site` (named `atlapps-site` until 2026-11-22), `pages/` | GitHub Pages, serving its `main` as it is | this repo's stamper, run there, writes the finished pages and a copy of the stylesheet, fonts and scripts; they are committed |
 | shops.monaidea.com and each category's host | the platform's agents (repo `standalone-harnessed`) | the platform | the owner pastes `/platform/style.css` and `/platform/frame.txt` (published by this repo) into the platform's dashboard, Products |
 | www.vestanabullc.com | repo `webforvestanabullc` | itself | never: another brand |
 
@@ -60,7 +60,7 @@ through claude.ai.
   `brand/frame.txt`, in the platform's own line format (`pages.ReadFrame` in
   `standalone-harnessed`), so the platform takes the same file. No other file,
   here or in another repo, repeats any of it.
-- **After a change to `brand/`** (merged here): (1) in `atlapps-site`, run
+- **After a change to `brand/`** (merged here): (1) in `mapstoneapps-site`, run
   `node ../monaidea/brand/stamp.mjs .`, commit what it wrote and push, in the
   same session; and (2) when `platform/style.css` or `platform/frame.txt`
   changed, tell the owner to paste them again on the platform's Products page.

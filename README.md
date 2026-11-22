@@ -12,7 +12,7 @@ page from it into the repository's root: it adds the stylesheet, fonts, header,
 footer, scripts, address and icon to every page, and writes nothing if one page
 breaks a rule. The finished pages are committed, and GitHub Pages serves `main`
 as it is. A check on every push fails when the committed files are not what
-the stamper writes. `atlapps-site` is written the same way with this
+the stamper writes. `mapstoneapps-site` is written the same way with this
 repository's `brand/`.
 
 ```sh
