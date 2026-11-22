@@ -16,7 +16,7 @@ this file.
 | Site | Pages written in | Published by | The brand reaches it |
 |---|---|---|---|
 | www.monaidea.com | this repo, `pages/` | GitHub Pages, serving `main` as it is | the stamper writes the finished pages here; they are committed |
-| atlapps.monaidea.com/`<app>` | repo `VestaNabu-LLC/atlapps-site`, `pages/` | GitHub Pages, serving its `main` as it is | this repo's stamper, run there, writes the finished pages and a copy of the stylesheet, fonts and scripts; they are committed |
+| mapstoneapps.com/`<app>` (until 2026-11-22 atlapps.monaidea.com, which forwards there) | repo `VestaNabu-LLC/atlapps-site`, `pages/` | GitHub Pages, serving its `main` as it is | this repo's stamper, run there, writes the finished pages and a copy of the stylesheet, fonts and scripts; they are committed |
 | shops.monaidea.com and each category's host | the platform's agents (repo `standalone-harnessed`) | the platform | the owner pastes `/platform/style.css` and `/platform/frame.txt` (published by this repo) into the platform's dashboard, Products |
 | www.vestanabullc.com | repo `webforvestanabullc` | itself | never: another brand |
 
