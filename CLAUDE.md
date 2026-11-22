@@ -42,6 +42,10 @@ through claude.ai.
 - **The look is label tape on a pegboard** (the owner's pick, 2026-11-22). What
   repeats (tapes, shops, list items, headings) takes its colour and tilt from
   its position, so a new shop or product needs no colour or class of its own.
+  The home page adds the shops the platform opens by itself: `brand/site.js`
+  reads the shops index's list (`https://shops.monaidea.com/shops.json`, on a
+  list with `data-live`); the shops written on the page keep their words, and
+  one the platform takes down leaves.
 - **The brand is applied by code, never by hand.** A page under `pages/` is
   content only: a `<title>`, a description, then `<main>…</main>` (the exact
   form is at the top of `brand/stamp.mjs`). The stamper writes the finished
