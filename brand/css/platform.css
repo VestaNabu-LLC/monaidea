@@ -1,88 +1,89 @@
-/* The pages the platform publishes (product pages, category pages, the shops
+/* The pages the platform publishes (a product's page, a shop's page, the shops
    index): plain HTML with no classes but the platform's own, .cards, .buy and
-   .note. They are made to look like the hand-built pages (site.css) without
-   their markup: the same sky, the same width as the header, the same centred
-   title on a page that lists things, the same measure for running text. */
+   .note. The same pegboard and tape as the hand-built pages: a page's text
+   sits on a white sheet held by a clip, and a page that lists things hangs
+   each one on the board like a clipboard. Colours and tilts come by position,
+   so a new shop or product needs nothing of its own. */
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;min-height:100%;background:var(--bg)}
-body{margin:0;min-height:100vh;color:var(--fg);font:16px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-/* the sky: site.css's .sky, its three lights and its grid, painted behind the page */
-body::before,body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
-body::before{background:radial-gradient(circle 380px at calc(8% + 260px) 100px,rgba(99,102,241,.34),rgba(99,102,241,.14) 55%,transparent),radial-gradient(circle 340px at calc(96% - 220px) 280px,rgba(56,189,248,.3),rgba(56,189,248,.12) 55%,transparent),radial-gradient(circle 300px at calc(38% + 190px) 610px,rgba(168,85,247,.18),rgba(168,85,247,.07) 55%,transparent),radial-gradient(1200px 600px at 50% -10%,#121a3a 0%,transparent 60%)}
-body::after{background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 70% 55% at 50% 20%,#000 30%,transparent 75%);mask-image:radial-gradient(ellipse 70% 55% at 50% 20%,#000 30%,transparent 75%);opacity:.55}
-/* as wide as the header, so a page starts under the brand's mark; running text keeps a readable measure */
-body>*:not(header):not(footer){max-width:1120px;margin-left:auto;margin-right:auto;padding-left:20px;padding-right:20px}
-main>:is(p,ul,ol,dl,blockquote,pre,table,.note):not(.cards){max-width:720px}
-html>body>:is(p,ul,ol,dl,blockquote,pre,table){padding-right:clamp(20px,calc(100% - 740px),380px)}
-html>body>:is(ul,ol){padding-left:42px}
-body>.note{max-width:720px;margin-left:max(20px,calc(50% - 540px));padding-left:22px;padding-right:22px}
-html>body>.buy{margin-left:max(20px,calc(50% - 540px))}
-body>header+a,body>a:first-child{display:block}
-body>main,body>header+*{padding-top:56px}
-body>:last-child:not(footer),main{padding-bottom:40px}
+html{-webkit-text-size-adjust:100%;min-height:100%;background:var(--board)}
+body{margin:0;min-height:100vh;background:var(--board) radial-gradient(circle,var(--hole) 3px,transparent 3.6px) 0 0/28px 28px;color:var(--on-board);font:17px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+/* as wide as the header; a page's own text on a sheet, a readable measure */
+body>*:not(header):not(footer):not(main){max-width:1120px;margin-left:auto;margin-right:auto;padding-left:20px;padding-right:20px}
+body>:is(p,ul,ol,dl,blockquote,pre,table){padding-right:clamp(20px,calc(100% - 760px),380px)}
+body>:is(ul,ol){padding-left:42px}
+body>:is(p,ul,ol,dl,table,blockquote) a{color:var(--on-board);text-decoration:underline}
+body>header+*{margin-top:40px}
+main{position:relative;max-width:1080px;margin:44px auto 0;padding:52px clamp(20px,5vw,56px) 36px;border-radius:var(--r);background:var(--paper);color:var(--ink);box-shadow:var(--hang)}
+main::before{content:"";position:absolute;top:-16px;left:50%;width:128px;height:36px;margin-left:-64px;border-radius:8px 8px 16px 16px;background:var(--clip);box-shadow:inset 0 -4px 0 rgba(0,0,0,.35)}
+main>:is(p,ul,ol,dl,blockquote,pre,.note):not(.cards){max-width:72ch}
 
-/* type */
-h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.03em;line-height:1.1;margin:0 0 14px;color:var(--fg)}
-h1{font-size:clamp(36px,6vw,60px);font-weight:700;letter-spacing:-.04em;line-height:1.04;margin-bottom:18px}
-h2{font-size:clamp(24px,3.4vw,32px);font-weight:700;margin-top:56px}
-h3{font-size:20px;font-weight:600;letter-spacing:-.02em;margin-top:36px}
-h1+p{font-size:18px;color:var(--muted)}
-p,li,dd,td,th{color:var(--muted)}
+/* type: the title on black tape, each section's heading on a tape of its own */
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;line-height:1.08;margin:0 0 14px}
+h1{font-size:clamp(34px,5vw,56px)}
+main h1{display:inline;padding:.04em .3em .08em;border-radius:3px;background:var(--black);color:var(--white);line-height:1.5;-webkit-box-decoration-break:clone;box-decoration-break:clone;box-shadow:var(--lift)}
+main h1+*{margin-top:24px}
+h2{display:table;margin:48px 0 16px;padding:.1em .4em .14em;border-radius:3px;background:var(--red);color:var(--white);font-size:clamp(23px,3vw,30px);text-transform:uppercase;letter-spacing:.08em;box-shadow:var(--lift)}
+h2:nth-of-type(4n+2){background:var(--black)}
+h2:nth-of-type(4n+3){background:var(--green)}
+h2:nth-of-type(4n+4){background:var(--yellow);color:var(--black)}
+h2>a{color:inherit!important;text-decoration:none!important}
+h3{font-size:22px;margin-top:32px}
 p{margin:0 0 16px}
-strong,b{color:var(--fg);font-weight:600}
-a{color:var(--a1);text-decoration:none}
-a:hover{color:var(--fg)}
-ul,ol{padding-left:22px;margin:0 0 20px}
+main a{color:var(--link)}
+main a:hover{text-decoration:underline}
+strong,b{font-weight:600}
+ul,ol{padding-left:24px;margin:0 0 20px}
 li{margin:6px 0}
-li::marker{color:var(--a2)}
-dt{color:var(--fg);font-weight:600;margin-top:16px}
+li::marker{color:var(--red)}
+dt{font-weight:600;margin-top:14px}
 dd{margin:4px 0 0}
-small{color:var(--dim);font-size:13px}
-hr{border:0;border-top:1px solid var(--line);margin:40px 0}
-code,kbd{font:500 .9em var(--mono);background:var(--card-hi);border:1px solid var(--line);border-radius:6px;padding:.1em .4em}
-pre{overflow-x:auto;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px}
-pre code{background:none;border:0;padding:0}
-blockquote{margin:24px 0;padding:4px 0 4px 20px;border-left:2px solid var(--a2)}
-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}
-th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
-th{color:var(--fg);font-weight:600}
+small{font-size:14px}
+hr{border:0;border-top:2px dashed var(--metal-edge);margin:36px 0}
+code,kbd{font:.9em var(--mono);background:var(--metal);border-radius:4px;padding:.1em .35em}
+pre{overflow-x:auto;background:var(--metal);border-radius:8px;padding:14px}
+pre code{background:none;padding:0}
+blockquote{margin:22px 0;padding:4px 0 4px 18px;border-left:4px solid var(--yellow)}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:16px}
+th,td{text-align:left;padding:10px 12px;border-bottom:2px solid var(--metal)}
+th{font:700 15px/1.2 var(--display);text-transform:uppercase;letter-spacing:.08em}
 img,svg,video{max-width:100%;height:auto}
 
-/* where a page sits: the platform's own trail (Shops › category › product),
-   in the hand-built pages' .crumbs look. It stands above the title, or first
-   on a page whose title the platform can't find. A way back the builder wrote
-   right before or right after it is not shown twice; the trail then stands
-   first under the header, and takes that place's room. */
-nav[data-of]{margin-bottom:20px;color:var(--dim);font-size:14px}
-nav[data-of] a{color:var(--muted)}
-nav[data-of] a:hover{color:var(--fg)}
+/* where a page sits: the platform's own trail (Shops › shop › product), above
+   the title. A way back the builder wrote right before or right after it is
+   not shown twice. */
+nav[data-of]{display:block;margin:0 0 18px;color:var(--ink-soft);font:700 15px/1.3 var(--display);text-transform:uppercase;letter-spacing:.1em}
+nav[data-of] a{color:var(--link);text-decoration:none}
+nav[data-of] a:hover{text-decoration:underline}
+body>nav[data-of],body>nav[data-of] a,main:has(>.cards) nav[data-of],main:has(>.cards) nav[data-of] a{color:var(--on-board)}
 :is(a,p:has(>a:first-child),nav:not([data-of])):has(+nav[data-of]),nav[data-of]+:is(a,p:has(>a:first-child),nav),nav[data-of]+main>:is(a,p:has(>a:first-child),nav):first-child{display:none}
-body>header+:is(a,p:has(>a:first-child),nav:not([data-of]))+nav[data-of]{padding-top:56px}
-nav[data-of]+main{padding-top:0}
 
 /* the buy link, and a note */
-.buy,a.buy{display:inline-flex;align-items:center;gap:8px;margin:8px 0 24px;padding:12px 22px;border-radius:12px;background:var(--grad);color:#fff;font:600 15px var(--body);box-shadow:0 8px 30px -8px rgba(99,102,241,.7);transition:transform .2s,box-shadow .2s}
-.buy:hover,a.buy:hover{color:#fff;transform:translateY(-2px);box-shadow:0 14px 40px -8px rgba(99,102,241,.85)}
-.note{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:18px 22px;margin-top:24px;margin-bottom:24px}
+.buy,a.buy{display:inline-block;margin:10px 0 26px;padding:13px 20px 14px;border:2px solid var(--black);border-radius:3px;background:var(--yellow);color:var(--black);font:700 19px/1.1 var(--display);text-transform:uppercase;letter-spacing:.1em;text-decoration:none;box-shadow:var(--lift);transition:transform .15s}
+.buy:hover,a.buy:hover{transform:translateY(-2px);text-decoration:none}
+.note{margin:24px 0;padding:16px 20px;border-left:6px solid var(--yellow);border-radius:6px;background:var(--note);color:var(--ink)}
 
-/* a page that lists things (the shops index, a category): its title is the landing page's */
-main:has(>.cards)>h1{max-width:900px;margin:40px auto 72px;padding-bottom:.12em;text-align:center;font-size:clamp(40px,7vw,76px);line-height:1.02;background:var(--grad);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 8s linear infinite}
-@keyframes shine{to{background-position:200% center}}
-main:has(>.cards)>h2{font-size:clamp(28px,4vw,40px);margin-top:72px}
-main:has(>.cards)>h1+h2{margin-top:0}
-main:has(>.cards)>nav[data-of]{margin-top:40px;text-align:center}
-main:has(>.cards)>nav[data-of]+h1{margin-top:0}
-main:has(>.cards)>h2+p{margin:-4px 0 0;max-width:620px}
+/* a page that lists things (the shops index, a shop): no sheet, each item a clipboard on the board */
+main:has(>.cards){padding:24px 20px 0;background:none;box-shadow:none;color:var(--on-board)}
+main:has(>.cards)::before{display:none}
+main:has(>.cards)>h1{background:var(--white);color:var(--black);font-size:clamp(44px,7vw,84px);text-transform:uppercase;letter-spacing:.06em}
+main:has(>.cards)>h2{margin-top:56px}
+main:has(>.cards)>h1+h2{margin-top:40px}
+main:has(>.cards)>p{color:var(--on-board-soft)}
+main:has(>.cards)>p a{color:var(--on-board)}
+.cards{display:grid;gap:48px 22px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));list-style:none;padding:0;margin:36px 0 12px}
+.cards li{margin:0;padding-top:18px}
+.cards a{position:relative;display:block;height:100%;padding:42px 20px 20px;border:2px solid var(--metal-edge);border-radius:var(--r);background:var(--metal);color:var(--ink);font:700 21px/1.2 var(--display);text-decoration:none;box-shadow:var(--hang);transform:rotate(-.8deg);transition:transform .15s}
+.cards li:nth-child(2n) a{transform:rotate(.7deg)}
+.cards li:nth-child(3n) a{transform:rotate(-.4deg)}
+.cards a:hover{transform:translateY(-3px);text-decoration:none}
+.cards a::before{content:"";position:absolute;top:-14px;left:50%;width:96px;height:30px;margin-left:-48px;border-radius:7px 7px 14px 14px;background:var(--clip);box-shadow:inset 0 -3px 0 rgba(0,0,0,.35)}
+.cards a::after{content:"";position:absolute;top:20px;left:20px;width:56px;height:10px;border-radius:2px;background:var(--red)}
+.cards li:nth-child(4n+2) a::after{background:var(--black)}
+.cards li:nth-child(4n+3) a::after{background:var(--green)}
+.cards li:nth-child(4n+4) a::after{background:var(--yellow)}
+.cards p{margin:8px 0 0;color:var(--ink-soft);font:400 16px/1.5 var(--body)}
+.cards small{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:3px;background:var(--black);color:var(--white);font:700 12px/1.3 var(--display);text-transform:uppercase;letter-spacing:.1em;vertical-align:middle}
 
-/* cards: category and shops pages */
-.cards{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));list-style:none;padding:0;margin:24px 0 8px}
-.cards li{margin:0}
-.cards a{display:block;height:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:24px 26px;color:var(--fg);font:600 19px/1.25 var(--display);letter-spacing:-.02em;transition:border-color .25s,transform .25s}
-.cards a:hover{border-color:var(--line-hi);transform:translateY(-3px)}
-.cards p{margin:8px 0 0;font:400 15px/1.6 var(--body);letter-spacing:0;color:var(--muted)}
-.cards small{display:block;margin-top:6px;font:500 12px var(--body);letter-spacing:0}
-h2>a{color:var(--fg)}
-h2>a:hover{color:var(--a1)}
-
-@media (max-width:640px){body>.note{margin-left:20px;margin-right:20px}h2{margin-top:40px}}
+@media (max-width:640px){main{margin:36px 10px 0;padding:46px 18px 28px}main:has(>.cards){margin:20px auto 0;padding:20px 20px 0}h2{margin-top:36px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

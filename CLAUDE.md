@@ -2,7 +2,9 @@
 
 This repo is two things:
 
-1. **www.monaidea.com**, Monaidea's landing page and legal pages (`pages/`).
+1. **www.monaidea.com**, Monaidea's home and legal pages (`pages/`), until the
+   owner moves the custom domain to `VestaNabu-LLC/monaidea-site`, which has the
+   same pages.
 2. **The Monaidea brand** (`brand/`): the one source of the look, the header and
    the footer of every Monaidea page, wherever it is published.
 
@@ -15,8 +17,8 @@ this file.
 
 | Site | Pages written in | Published by | The brand reaches it |
 |---|---|---|---|
-| www.monaidea.com | this repo, `pages/` | GitHub Pages, serving `main` as it is | the stamper writes the finished pages here; they are committed |
-| mapstoneapps.com/`<app>`, and Admin Kits at `/adminkits/` (until 2026-11-22 atlapps.monaidea.com and adminkits.monaidea.com, which forward there) | repo `VestaNabu-LLC/mapstoneapps-site` (named `atlapps-site` until 2026-11-22), `pages/` | GitHub Pages, serving its `main` as it is | this repo's stamper, run there, writes the finished pages and a copy of the stylesheet, fonts and scripts; they are committed |
+| www.monaidea.com | `monaidea-site`, `pages/` (and this repo's `pages/`, the same, until the custom domain moves there) | GitHub Pages, serving `main` as it is | the stamper writes the finished pages; they are committed |
+| mapstoneapps.com/`<app>`, and Admin Kits at `/adminkits/` (until 2026-11-22 atlapps.monaidea.com and adminkits.monaidea.com, which forward there) | repo `VestaNabu-LLC/mapstoneapps-site` (named `atlapps-site` until 2026-11-22), `pages/` | GitHub Pages, serving its `main` as it is | its own copy of this brand since 2026-11-22 (`mapstoneapps-site` #1): Monaidea's changes do not reach it |
 | shops.monaidea.com and each category's host | the platform's agents (repo `standalone-harnessed`) | the platform | the owner pastes `/platform/style.css` and `/platform/frame.txt` (published by this repo) into the platform's dashboard, Products |
 | www.vestanabullc.com | repo `webforvestanabullc` | itself | never: another brand |
 
@@ -37,6 +39,9 @@ through claude.ai.
 
 ## Rules
 
+- **The look is label tape on a pegboard** (the owner's pick, 2026-11-22). What
+  repeats (tapes, shops, list items, headings) takes its colour and tilt from
+  its position, so a new shop or product needs no colour or class of its own.
 - **The brand is applied by code, never by hand.** A page under `pages/` is
   content only: a `<title>`, a description, then `<main>…</main>` (the exact
   form is at the top of `brand/stamp.mjs`). The stamper writes the finished
@@ -60,9 +65,9 @@ through claude.ai.
   `brand/frame.txt`, in the platform's own line format (`pages.ReadFrame` in
   `standalone-harnessed`), so the platform takes the same file. No other file,
   here or in another repo, repeats any of it.
-- **After a change to `brand/`** (merged here): (1) in `mapstoneapps-site`, run
+- **After a change to `brand/`** (merged here): (1) in `monaidea-site`, run
   `node ../monaidea/brand/stamp.mjs .`, commit what it wrote and push, in the
-  same session; and (2) when `platform/style.css` or `platform/frame.txt`
+  same session (and here, while this repo still serves www.monaidea.com); and (2) when `platform/style.css` or `platform/frame.txt`
   changed, tell the owner to paste them again on the platform's Products page.
 - **No other company on a page**: no fonts, scripts, analytics or embeds from
   elsewhere (the privacy policy says no cookies, no analytics, no tracking).
@@ -87,7 +92,7 @@ through claude.ai.
 |---|---|
 | The stamper and its tests | `brand/stamp.mjs`, `brand/stamp.test.mjs` |
 | The stylesheets' parts | `brand/css/`: `font`, `tokens`, `chrome` (all pages), `site` (hand-built pages), `platform` (the platform's pages) |
-| Fonts (served by us, with their licences) | `brand/fonts/` |
+| Fonts: Barlow and Barlow Condensed (served by us, with their licences) | `brand/fonts/` |
 | Menu, footer, notes, the owner's other shops | `brand/frame.txt` |
 | Scripts on every page / on pages with the form | `brand/site.js` / `brand/contact.js` |
 | This site's address, footer note, and what is not published | `site.json` |
