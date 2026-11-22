@@ -1,5 +1,4 @@
 Brand | Monaidea | https://www.monaidea.com/
-Menu | Atlassian Apps | https://mapstoneapps.com/
 Menu | Shops | https://shops.monaidea.com/
 Menu | Contact | https://www.monaidea.com/#contact
 Foot | Terms | https://www.monaidea.com/terms/
