@@ -63,6 +63,14 @@ test("Monaidea subdomains are accepted; a missing topic gets the default", async
   assert.equal(calls.postmark[0].Subject, "[Monaidea · General question] Ann");
 });
 
+test("the Atlassian apps' site is accepted, and the mail says where it came from", async () => {
+  const calls = mockFetch();
+  const res = await worker.fetch(post("https://mapstoneapps.com", { ...VALID, interest: "Flagstone" }), ENV);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("Access-Control-Allow-Origin"), "https://mapstoneapps.com");
+  assert.match(calls.postmark[0].TextBody, /^Site: https:\/\/mapstoneapps\.com\n/);
+});
+
 test("Postmark refusal: 502 naming support@monaidea.com, with Postmark's code", async () => {
   mockFetch({ postmark: 422 });
   const res = await worker.fetch(post("https://www.monaidea.com", VALID), ENV);
@@ -80,6 +88,10 @@ test("other origins are refused, lookalikes included", async () => {
     "https://www.vestanabullc.com",
     "https://monaidea.com.example.com",
     "https://xmonaidea.com",
+    "https://xmapstoneapps.com",
+    "https://mapstoneapps.com.example.com",
+    "https://www.mapstoneapps.com",
+    "http://mapstoneapps.com",
     "http://www.monaidea.com",
     "https://www.monaidea.com:8443",
     "null",
@@ -94,7 +106,7 @@ test("other origins are refused, lookalikes included", async () => {
 });
 
 test("preflight answers each Monaidea origin with itself", async () => {
-  for (const origin of ["https://www.monaidea.com", "https://monaidea.com", "https://adminkits.monaidea.com"]) {
+  for (const origin of ["https://www.monaidea.com", "https://monaidea.com", "https://adminkits.monaidea.com", "https://mapstoneapps.com"]) {
     const res = await worker.fetch(new Request("https://forms.monaidea.com/", { method: "OPTIONS", headers: { Origin: origin } }), ENV);
     assert.equal(res.status, 204);
     assert.equal(res.headers.get("Access-Control-Allow-Origin"), origin);
