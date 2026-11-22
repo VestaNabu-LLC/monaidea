@@ -1,4 +1,5 @@
-// Contact form endpoint for Monaidea's sites (www.monaidea.com and any https://*.monaidea.com):
+// Contact form endpoint for Monaidea's sites (www.monaidea.com and any https://*.monaidea.com) and the
+// Atlassian apps' site (https://mapstoneapps.com, owner 2026-11-22):
 // checks Cloudflare Turnstile, then emails the message to support@monaidea.com through Postmark.
 // Runs as the Worker "monaidea-contact" in Monaidea's own Cloudflare account, at https://forms.monaidea.com
 // (owner, 2026-11-02). Set in the Cloudflare dashboard, never in code:
@@ -8,6 +9,8 @@
 // No database: Postmark and the inbox hold the record of every submission.
 
 const DOMAIN = "monaidea.com";
+// Sites outside monaidea.com whose pages carry the form, by exact hostname.
+const OTHER_HOSTS = ["mapstoneapps.com"];
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_TOPIC = "General question";
 
@@ -19,7 +22,7 @@ function allowedOrigin(origin) {
     return false;
   }
   const host = url.hostname;
-  const ours = host === DOMAIN || host.endsWith(`.${DOMAIN}`);
+  const ours = host === DOMAIN || host.endsWith(`.${DOMAIN}`) || OTHER_HOSTS.includes(host);
   return url.protocol === "https:" && !url.port && url.origin === origin && ours;
 }
 
