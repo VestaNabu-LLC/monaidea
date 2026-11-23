@@ -1,7 +1,7 @@
 Brand | Monaidea | https://www.monaidea.com/
 Menu | Shops | https://shops.monaidea.com/
 Menu | Contact | https://www.monaidea.com/#contact
-Menu | Sign in | https://app.monaidea.com/
+Menu | Your tools | https://app.monaidea.com/
 Foot | Terms | https://www.monaidea.com/terms/
 Foot | Privacy | https://www.monaidea.com/privacy/
 Foot | Refunds | https://www.monaidea.com/refunds/
