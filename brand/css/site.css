@@ -66,7 +66,6 @@ h2{font-size:clamp(32px,4.4vw,46px);margin-bottom:12px}
 .form input,.form select,.form textarea{width:100%;padding:10px 13px;border:2px solid var(--ink);border-radius:6px;background:var(--paper);color:var(--ink);font:17px/1.5 var(--body)}
 .form textarea{resize:vertical;min-height:140px}
 .form select{appearance:none;-webkit-appearance:none;padding-right:42px;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101a3a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center/18px}
-.hp{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
 .ts:empty{display:none}
 .form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
 .form .btn:disabled{opacity:.6;cursor:progress;transform:none}
